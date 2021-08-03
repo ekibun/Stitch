@@ -1,0 +1,3 @@
+rootProject.name = "Stitch"
+include ':app'
+include ':opencv'

@@ -1,0 +1,41 @@
+<resources>
+    <string name="app_name">Stitch</string>
+
+    <string name="request_overlay">需要悬浮窗口权限</string>
+    <string name="request_failed">缺少权限</string>
+    <string name="please_select_image">未选中图片</string>
+    <string name="please_add_image">请先添加图片</string>
+
+    <string name="tile_label">截图拼贴</string>
+    <string name="notify_text">点按通知以取消 / 共 %d 张图片</string>
+    <string name="alert_delete">确认删除 %d 张图片？</string>
+    <string name="alert_stitching">拼接中…</string>
+    <string name="alert_computing">计算中…</string>
+    <string name="alert_ok">确认</string>
+
+    <string name="menu_select_all">全选</string>
+    <string name="menu_select_clear">清除</string>
+    <string name="label_select">选中 %d/%d</string>
+    <string name="menu_remove">删除</string>
+    <string name="menu_auto_stitch">自动拼接</string>
+    <string name="label_dx">水平偏移</string>
+    <string name="label_dy">竖向偏移</string>
+    <string name="label_trim">裁切位置</string>
+    <string name="menu_import">导入</string>
+    <string name="menu_capture">截图</string>
+    <string name="menu_save">导出</string>
+
+    <string name="about_dialog_title">关于Stitch</string>
+    <string name="about_dialog_message">
+        截图拼接小工具\n
+        1. 点击导入/截图添加图片\n
+        2. 截图模式下，点击悬浮按钮添加屏幕截图，长按按钮打开编辑窗口\n
+        3. 点击圆圈选择图片修改拼接参数，或拖动圆圈移动位置\n
+        4. 自动拼接采用opencv计算，可以用于拼接地图，请保持足够的重合区域\n
+        5. 拼接数据将在软件重启或点击快捷按钮后清除，编辑完成后请尽快导出\n
+        Enjoy~
+    </string>
+    <string name="about_dialog_support">打赏</string>
+    <string name="about_dialog_github">GitHub</string>
+    <string name="about_dialog_button">确定</string>
+</resources>
