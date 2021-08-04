@@ -44,6 +44,7 @@
                 android:padding="8dp"
                 android:text="@string/menu_support"
                 android:textColor="?android:attr/textColorPrimary"
+                android:background="?selectableItemBackgroundBorderless"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="@+id/guidance_info"
                 app:layout_constraintTop_toBottomOf="@+id/guidance_info" />
@@ -55,6 +56,7 @@
                 android:padding="8dp"
                 android:text="@string/menu_github"
                 android:textColor="?android:attr/textColorPrimary"
+                android:background="?selectableItemBackgroundBorderless"
                 app:layout_constraintStart_toEndOf="@+id/menu_support"
                 app:layout_constraintTop_toBottomOf="@+id/guidance_info" />
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -78,7 +80,7 @@
                 android:id="@+id/menu_select_all"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:background="?selectableItemBackgroundBorderless"
                 android:padding="8dp"
                 android:text="@string/menu_select_all"
                 android:textColor="?android:attr/textColorPrimary" />
@@ -87,7 +89,7 @@
                 android:id="@+id/menu_select_clear"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:background="?selectableItemBackgroundBorderless"
                 android:padding="8dp"
                 android:text="@string/menu_select_clear"
                 android:textColor="?android:attr/textColorPrimary" />
@@ -97,15 +99,24 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:background="?selectableItemBackgroundBorderless"
                 android:padding="8dp"
                 tools:text="已选中 8/10" />
+
+            <TextView
+                android:id="@+id/menu_swap"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:text="@string/menu_swap"
+                android:textColor="?android:attr/textColorPrimary" />
 
             <TextView
                 android:id="@+id/menu_remove"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:background="?selectableItemBackgroundBorderless"
                 android:padding="8dp"
                 android:text="@string/menu_remove"
                 android:textColor="@color/colorWarn" />
@@ -114,7 +125,7 @@
                 android:id="@+id/menu_auto_stitch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:background="?selectableItemBackgroundBorderless"
                 android:padding="8dp"
                 android:text="@string/menu_auto_stitch"
                 android:textColor="@color/colorPrimary" />
@@ -202,7 +213,7 @@
                 android:id="@+id/menu_import"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:background="?selectableItemBackgroundBorderless"
                 android:padding="8dp"
                 android:text="@string/menu_import"
                 android:textColor="?android:attr/textColorPrimary" />
@@ -211,7 +222,7 @@
                 android:id="@+id/menu_capture"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:background="?selectableItemBackgroundBorderless"
                 android:padding="8dp"
                 android:text="@string/menu_capture"
                 android:textColor="?android:attr/textColorPrimary" />
@@ -225,7 +236,7 @@
                 android:id="@+id/menu_save"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:background="?selectableItemBackgroundBorderless"
                 android:padding="8dp"
                 android:text="@string/menu_save"
                 android:textColor="@color/colorPrimary" />

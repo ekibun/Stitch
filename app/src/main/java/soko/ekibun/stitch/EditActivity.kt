@@ -14,8 +14,6 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.text.Html
-import android.util.Log
-import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
@@ -41,7 +39,7 @@ class EditActivity : AppCompatActivity() {
     private val decorator by lazy { EditDecorator(this) }
 
     val selected by lazy {
-        mutableSetOf<String>()
+        mutableSetOf<Int>()
     }
 
     private fun updateSelectInfo() {
@@ -50,8 +48,10 @@ class EditActivity : AppCompatActivity() {
         editView.invalidate()
         val selected = App.stitchInfo.filterIndexed { i, it -> i > 0 && selected.contains(it.key) }
         if (selected.isNotEmpty()) {
-            seekbarX.progress = (selected.map { it.dx }.average() * 10 + 10).roundToInt()
-            seekbarY.progress = (selected.map { it.dy }.average() * 10 + 10).roundToInt()
+            seekbarX.progress =
+                (selected.map { it.dx.toFloat() / it.width }.average() * 10 + 10).roundToInt()
+            seekbarY.progress =
+                (selected.map { it.dy.toFloat() / it.height }.average() * 10 + 10).roundToInt()
             seekbarTrim.progress = (selected.map { it.trim }.average() * 20).roundToInt()
         }
     }
@@ -92,8 +92,9 @@ class EditActivity : AppCompatActivity() {
         try {
             val bitmap = BitmapFactory.decodeStream(contentResolver.openInputStream(uri))
             val key = App.bitmapCache.saveBitmap(bitmap) ?: return
-            App.stitchInfo.add(Stitch.StitchInfo(key, bitmap.width, bitmap.height))
-            selected.add(key)
+            val info = Stitch.StitchInfo(key, bitmap.width, bitmap.height)
+            App.stitchInfo.add(info)
+            selected.add(info.key)
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -141,18 +142,26 @@ class EditActivity : AppCompatActivity() {
         ) {
             selected.clear()
             if (it.resultCode == RESULT_OK) {
-                val clipData = it.data?.clipData
-                if (clipData != null) {
-                    val count: Int =
-                        clipData.itemCount //evaluate the count before the for loop --- otherwise, the count is evaluated every loop.
-                    for (i in 0 until count) {
-                        addImage(clipData.getItemAt(i).uri)
+                val progress = ProgressDialog.show(this, null, getString(R.string.alert_stitching))
+                GlobalScope.launch(Dispatchers.Default) {
+                    val clipData = it.data?.clipData
+                    if (clipData != null) {
+                        val count: Int =
+                            clipData.itemCount
+                        for (i in 0 until count) {
+                            addImage(clipData.getItemAt(i).uri)
+                        }
+                    } else it.data?.data?.let { path ->
+                        addImage(path)
                     }
-                } else it.data?.data?.let { path ->
-                    addImage(path)
+                    runOnUiThread {
+                        progress.cancel()
+                        layoutManager.updateRange()
+                        editView.invalidate()
+                        updateSelectInfo()
+                    }
                 }
             }
-            updateSelectInfo()
         }
         findViewById<View>(R.id.menu_import).setOnClickListener {
             val intent = Intent(Intent.ACTION_GET_CONTENT)
@@ -168,6 +177,34 @@ class EditActivity : AppCompatActivity() {
         }
         findViewById<View>(R.id.menu_select_clear).setOnClickListener {
             selectClear()
+        }
+        findViewById<View>(R.id.menu_swap).setOnClickListener {
+            if (selected.size != 2) {
+                Toast.makeText(this, R.string.please_select_swap, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            val (i, j) = selected.map { App.stitchInfo.indexOfFirst { info -> info.key == it } }
+                .sorted()
+            if (i < 0 || j < 0) return@setOnClickListener
+            val a = App.stitchInfo[i]
+            val b = App.stitchInfo.set(j, App.stitchInfo[i])
+            App.stitchInfo[i] = b
+            val adx = a.dx
+            val ady = a.dy
+            a.dx = a.x - b.x + b.dx
+            a.dy = a.y - b.y + b.dy
+            App.stitchInfo.getOrNull(j + 1)?.let {
+                it.dx = it.x - a.x
+                it.dy = it.y - a.y
+            }
+            b.dx = b.x - a.x + adx
+            b.dy = b.y - a.y + ady
+            App.stitchInfo.getOrNull(i + 1)?.let {
+                it.dx = it.x - b.x
+                it.dy = it.y - b.y
+            }
+            layoutManager.updateRange()
+            editView.invalidate()
         }
         findViewById<View>(R.id.menu_remove).setOnClickListener {
             if (selected.isEmpty()) {
@@ -207,10 +244,10 @@ class EditActivity : AppCompatActivity() {
             GlobalScope.launch(Dispatchers.Default) {
                 App.stitchInfo.reduceOrNull { acc, it ->
                     if (selected.contains(it.key)) {
-                        val img0 = App.bitmapCache.getBitmap(acc.key)
-                        val img1 = App.bitmapCache.getBitmap(it.key)
+                        val img0 = App.bitmapCache.getBitmap(acc.image)
+                        val img1 = App.bitmapCache.getBitmap(it.image)
                         if (img0 != null && img1 != null) {
-                            Stitch.combine(Stitch.bitmapToMat(img0), Stitch.bitmapToMat(img1), it)
+                            Stitch.combine(img0, img1, it)
                         }
                     }
                     it
@@ -251,7 +288,7 @@ class EditActivity : AppCompatActivity() {
             override fun onProgressChanged(p0: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (!fromUser) return
                 App.stitchInfo.forEach {
-                    if (selected.contains(it.key)) it.dx = progress / 20f - 0.5f
+                    if (selected.contains(it.key)) it.dx = (progress - 10) * it.width / 10
                 }
                 layoutManager.updateRange()
                 editView.invalidate()
@@ -265,7 +302,7 @@ class EditActivity : AppCompatActivity() {
             override fun onProgressChanged(p0: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (!fromUser) return
                 App.stitchInfo.forEach {
-                    if (selected.contains(it.key)) it.dy = progress / 20f - 0.5f
+                    if (selected.contains(it.key)) it.dy = (progress - 10) * it.height / 10
                 }
                 layoutManager.updateRange()
                 editView.invalidate()
@@ -290,14 +327,10 @@ class EditActivity : AppCompatActivity() {
         })
     }
 
-    override fun onContextItemSelected(item: MenuItem): Boolean {
-        Log.v("MENU", item.toString())
-        return super.onContextItemSelected(item)
-    }
-
     override fun onResume() {
         super.onResume()
         if (selected.isEmpty()) selectAll()
         layoutManager.updateRange()
+        editView.invalidate()
     }
 }

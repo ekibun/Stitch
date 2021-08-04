@@ -5,12 +5,14 @@
     <string name="request_failed">缺少权限</string>
     <string name="please_select_image">未选中图片</string>
     <string name="please_add_image">请先添加图片</string>
+    <string name="please_select_swap">请选中两张图片</string>
 
     <string name="tile_label">截图拼贴</string>
     <string name="notify_text">点按通知以取消 / 共 %d 张图片</string>
     <string name="alert_delete">确认删除 %d 张图片？</string>
     <string name="alert_stitching">拼接中…</string>
     <string name="alert_computing">计算中…</string>
+    <string name="alert_reading">读取中…</string>
     <string name="alert_ok">确认</string>
 
     <string name="menu_select_all">全选</string>
@@ -41,4 +43,5 @@
     <string name="support_error">请安装支付宝后进行操作</string>
     <string name="menu_github">GitHub</string>
     <string name="open_error">无法打开浏览器</string>
+    <string name="menu_swap">换序</string>
 </resources>

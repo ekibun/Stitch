@@ -6,7 +6,6 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 class EditLayoutManager : RecyclerView.LayoutManager() {
     override fun generateDefaultLayoutParams(): RecyclerView.LayoutParams {
@@ -34,11 +33,21 @@ class EditLayoutManager : RecyclerView.LayoutManager() {
         maxY = 0
         minX = 0
         minY = 0
+        App.stitchInfo.firstOrNull()?.let {
+            offsetX -= it.dx
+            offsetY -= it.dy
+            it.dx = 0
+            it.dy = 0
+        }
         App.stitchInfo.forEach {
-            it.dx = it.dx.coerceIn(-1f, 1f)
-            it.dy = it.dy.coerceIn(-1f, 1f)
-            it.x = lastX + (it.dx * lastW).roundToInt()
-            it.y = lastY + (it.dy * lastH).roundToInt()
+            it.x = lastX + it.dx
+            it.y = lastY + it.dy
+
+            minX = min(minX, it.x)
+            minY = min(minY, it.y)
+            maxX = max(it.x + it.width, maxX)
+            maxY = max(it.y + it.height, maxY)
+
             val transX = it.x + it.width / 2f - lastX - lastW / 2f
             val transY = it.y + it.height / 2f - lastY - lastH / 2f
 
@@ -48,11 +57,8 @@ class EditLayoutManager : RecyclerView.LayoutManager() {
             val overB = min(it.y + it.height, lastY + lastH)
             lastX = it.x
             lastY = it.y
-
-            minX = min(minX, lastX)
-            minY = min(minY, lastY)
-            maxX = max(lastX + it.width, maxX)
-            maxY = max(lastY + it.height, maxY)
+            lastW = it.width
+            lastH = it.height
             // computePath
             it.path.reset()
             it.path.addRect(
@@ -91,7 +97,7 @@ class EditLayoutManager : RecyclerView.LayoutManager() {
                     )
                 } else {
                     it.path.addRect(
-                        it.x + overL * it.trim + overR * (1 - it.trim),
+                        overL * it.trim + overR * (1 - it.trim),
                         overT.toFloat(),
                         overR.toFloat(),
                         overB.toFloat(),
@@ -99,11 +105,9 @@ class EditLayoutManager : RecyclerView.LayoutManager() {
                     )
                 }
             }
-            lastW = it.width
-            lastH = it.height
         }
-        offsetX = max(minX * scale, min(maxX * scale - width, offsetX))
-        offsetY = max(minY * scale, min(maxY * scale - width, offsetY))
+        offsetX = max(minX * scale, min(maxX * scale - width, offsetX * scale)) / scale
+        offsetY = max(minY * scale, min(maxY * scale - height, offsetY * scale)) / scale
     }
 
     var minX = 0

@@ -40,9 +40,9 @@ class EditDecorator(private val activity: EditActivity) : RecyclerView.ItemDecor
                 it.y + it.height < c.clipBounds.top
             ) return@forEach
 
-            val bmp = (if (parent != null) App.bitmapCache.tryGetBitmap(it.key) {
+            val bmp = (if (parent != null) App.bitmapCache.tryGetBitmap(it.image) {
                 parent.invalidate()
-            } else App.bitmapCache.getBitmap(it.key)) ?: return@forEach
+            } else App.bitmapCache.getBitmap(it.image)) ?: return@forEach
             c.withClip(it.path)
             {
                 drawBitmap(bmp, it.x.toFloat(), it.y.toFloat(), null)
@@ -153,8 +153,8 @@ class EditDecorator(private val activity: EditActivity) : RecyclerView.ItemDecor
                 val prev =
                     App.stitchInfo.getOrNull(App.stitchInfo.indexOfFirst { it.key == touching.key } - 1)
                 if (prev != null) {
-                    touching.dx = (prev.width * touching.dx - touching.x + x) / prev.width
-                    touching.dy = (prev.height * touching.dy - touching.y + y) / prev.height
+                    touching.dx = touching.dx - touching.x + x
+                    touching.dy = touching.dy - touching.y + y
                     touching.x = x
                     touching.y = y
                     if (abs(downX - event.x) > 10 || abs(downY - event.y) > 10) {
