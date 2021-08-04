@@ -6,13 +6,60 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/edit"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        app:layout_constraintBottom_toTopOf="@+id/ctrl_plane"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/edit"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:visibility="invisible" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/guidance"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contextClickable="true">
+
+            <TextView
+                android:id="@+id/guidance_info"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:padding="8dp"
+                android:text="@string/guidance_info"
+                app:layout_constraintBottom_toTopOf="@+id/menu_support"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_chainStyle="packed"
+                app:layout_constraintWidth_percent="0.7" />
+
+            <TextView
+                android:id="@+id/menu_support"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="8dp"
+                android:text="@string/menu_support"
+                android:textColor="?android:attr/textColorPrimary"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="@+id/guidance_info"
+                app:layout_constraintTop_toBottomOf="@+id/guidance_info" />
+
+            <TextView
+                android:id="@+id/menu_github"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="8dp"
+                android:text="@string/menu_github"
+                android:textColor="?android:attr/textColorPrimary"
+                app:layout_constraintStart_toEndOf="@+id/menu_support"
+                app:layout_constraintTop_toBottomOf="@+id/guidance_info" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </FrameLayout>
+
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -23,8 +70,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:background="?android:attr/colorBackgroundFloating"
+            android:orientation="horizontal"
             android:padding="8dp">
 
             <TextView
@@ -76,8 +123,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:baselineAligned="false"
             android:background="?android:attr/colorBackgroundFloating"
+            android:baselineAligned="false"
             android:orientation="horizontal">
 
             <LinearLayout
@@ -169,14 +216,10 @@
                 android:text="@string/menu_capture"
                 android:textColor="?android:attr/textColorPrimary" />
 
-            <TextView
-                android:id="@+id/menu_version"
+            <View
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:padding="8dp"
-                tools:text="v1.0.0" />
+                android:layout_height="0dp"
+                android:layout_weight="1" />
 
             <TextView
                 android:id="@+id/menu_save"

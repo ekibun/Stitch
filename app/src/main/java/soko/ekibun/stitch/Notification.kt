@@ -42,7 +42,7 @@ class Notification(private val service: Service) {
     }
 
     fun updateText() {
-        service.getString(R.string.notify_text, App.stitchInfo.size)
+        builder.setContentText(service.getString(R.string.notify_text, App.stitchInfo.size))
         manager.notify(notifyID, builder.build())
     }
 }

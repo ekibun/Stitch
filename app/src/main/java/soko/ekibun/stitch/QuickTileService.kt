@@ -2,6 +2,7 @@ package soko.ekibun.stitch
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
@@ -32,6 +33,15 @@ class QuickTileService : TileService() {
             collapseStatusBar(applicationContext)
         }
         qsTile.updateTile() //更新Tile
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        try {
+            refreshState()
+        }catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return super.onStartCommand(intent, flags, startId)
     }
 
     private fun refreshState() {

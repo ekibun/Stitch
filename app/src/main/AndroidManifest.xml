@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="soko.ekibun.stitch">
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -14,18 +15,24 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Stitch"
-        android:fullBackupContent="@xml/backup_descriptor">
-        <activity android:name=".EditActivity">
+        tools:ignore="AllowBackup">
+        <activity
+            android:name=".EditActivity"
+            android:clearTaskOnLaunch="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
             </intent-filter>
         </activity>
         <activity
             android:name=".StartCaptureActivity"
             android:excludeFromRecents="true"
             android:theme="@style/Theme.Stitch.Transparent" />
+
         <service
             android:name=".CaptureService"
             android:enabled="true"

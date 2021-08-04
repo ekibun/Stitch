@@ -68,7 +68,7 @@ class EditLayoutManager : RecyclerView.LayoutManager() {
                         overL.toFloat(),
                         overT.toFloat(),
                         overR.toFloat(),
-                       overT * (1 - it.trim) + overB * it.trim,
+                        overT * (1 - it.trim) + overB * it.trim,
                         Path.Direction.CCW
                     )
                 } else {

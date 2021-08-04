@@ -10,12 +10,12 @@
         android:id="@+id/floatingActionButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="22dp"
         android:layout_marginEnd="22dp"
+        android:layout_marginBottom="22dp"
         android:clickable="true"
-        app:fabSize="normal"
-        app:srcCompat="@drawable/ic_tile"
-        app:rippleColor="@color/colorPrimary"
         android:focusable="true"
+        app:fabSize="normal"
+        app:rippleColor="@color/colorPrimary"
+        app:srcCompat="@drawable/ic_tile"
         tools:ignore="ContentDescription" />
 </RelativeLayout>

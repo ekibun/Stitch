@@ -13,6 +13,7 @@ import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
+import android.text.Html
 import android.util.Log
 import android.view.MenuItem
 import android.view.MotionEvent
@@ -27,16 +28,15 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.net.URISyntaxException
 import kotlin.math.roundToInt
 
 class EditActivity : AppCompatActivity() {
     private val editView by lazy { findViewById<RecyclerView>(R.id.edit) }
+    private val guidanceView by lazy { findViewById<View>(R.id.guidance) }
     private val selectInfo by lazy { findViewById<TextView>(R.id.select_info) }
     private val seekbarX by lazy { findViewById<SeekBar>(R.id.seek_x) }
     private val seekbarY by lazy { findViewById<SeekBar>(R.id.seek_y) }
     private val seekbarTrim by lazy { findViewById<SeekBar>(R.id.seek_trim) }
-    private val adapter by lazy { EditAdapter() }
     private val layoutManager by lazy { EditLayoutManager() }
     private val decorator by lazy { EditDecorator(this) }
 
@@ -45,6 +45,7 @@ class EditActivity : AppCompatActivity() {
     }
 
     private fun updateSelectInfo() {
+        guidanceView.visibility = if (App.stitchInfo.isEmpty()) View.VISIBLE else View.INVISIBLE
         selectInfo.text = getString(R.string.label_select, selected.size, App.stitchInfo.size)
         editView.invalidate()
         val selected = App.stitchInfo.filterIndexed { i, it -> i > 0 && selected.contains(it.key) }
@@ -103,7 +104,7 @@ class EditActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_edit)
         editView.layoutManager = layoutManager
-        editView.adapter = adapter
+        editView.adapter = EmptyAdapter()
         editView.addItemDecoration(decorator)
 
         var beginScale = 0f
@@ -222,34 +223,27 @@ class EditActivity : AppCompatActivity() {
                 }
             }
         }
-        val txtVersion = findViewById<TextView>(R.id.menu_version)
-        txtVersion.text = getVersion(this)
-        txtVersion.setOnClickListener {
-            val builder = AlertDialog.Builder(this)
-            builder.setTitle(getString(R.string.about_dialog_title))
-            builder.setMessage(getString(R.string.about_dialog_message))
-            builder.setNeutralButton(R.string.about_dialog_github) { _, _ ->
-                try {
-                    val intent = Intent(Intent.ACTION_VIEW)
-                    intent.data = Uri.parse("https://github.com/ekibun/Stitch")
-                    startActivity(intent)
-                } catch (e: URISyntaxException) {
-                    e.printStackTrace()
-                }
+        val str = getString(R.string.guidance_info, getVersion(this))
+        findViewById<TextView>(R.id.guidance_info).text = Html.fromHtml(str)
+        findViewById<TextView>(R.id.menu_support).setOnClickListener {
+            val intentFullUrl = "intent://platformapi/startapp?saId=10000007&" +
+                    "qrcode=https%3A%2F%2Fqr.alipay.com%2Ffkx14754b1r4mkbh6gfgg24#Intent;" +
+                    "scheme=alipayqr;package=com.eg.android.AlipayGphone;end"
+            try {
+                val intent = Intent.parseUri(intentFullUrl, Intent.URI_INTENT_SCHEME)
+                startActivity(intent)
+            } catch (e: Exception) {
+                Toast.makeText(this, R.string.support_error, Toast.LENGTH_SHORT).show()
             }
-            builder.setNegativeButton(R.string.about_dialog_support) { _, _ ->
-                val intentFullUrl = "intent://platformapi/startapp?saId=10000007&" +
-                        "qrcode=https%3A%2F%2Fqr.alipay.com%2Ffkx14754b1r4mkbh6gfgg24#Intent;" +
-                        "scheme=alipayqr;package=com.eg.android.AlipayGphone;end"
-                try {
-                    val intent = Intent.parseUri(intentFullUrl, Intent.URI_INTENT_SCHEME)
-                    startActivity(intent)
-                } catch (e: URISyntaxException) {
-                    e.printStackTrace()
-                }
+        }
+        findViewById<TextView>(R.id.menu_github).setOnClickListener {
+            try {
+                val intent = Intent(Intent.ACTION_VIEW)
+                intent.data = Uri.parse("https://github.com/ekibun/Stitch")
+                startActivity(intent)
+            } catch (e: Exception) {
+                Toast.makeText(this, R.string.open_error, Toast.LENGTH_SHORT).show()
             }
-            builder.setPositiveButton(R.string.about_dialog_button, null)
-            builder.show()
         }
 
         seekbarX.setOnSeekBarChangeListener(object :

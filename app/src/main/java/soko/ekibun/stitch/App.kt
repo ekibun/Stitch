@@ -3,7 +3,7 @@ package soko.ekibun.stitch
 import android.app.Application
 import android.content.res.Resources
 
-class App: Application() {
+class App : Application() {
     private val bitmapCache by lazy { BitmapCache(this) }
     val stitchInfo by lazy { mutableListOf<Stitch.StitchInfo>() }
 

@@ -37,7 +37,7 @@ class CaptureService : Service() {
             e.printStackTrace()
         }
         startActivity(Intent(this, EditActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         })
         stopSelf()
     }
@@ -48,6 +48,7 @@ class CaptureService : Service() {
     }
 
     override fun onCreate() {
+        startService(Intent(this, QuickTileService::class.java))
         floatButton.run { }
         notification.run { }
     }
@@ -57,6 +58,7 @@ class CaptureService : Service() {
         stopForeground(true)
         screenCapture?.destroy()
         floatButton.destroy()
+        startService(Intent(this, QuickTileService::class.java))
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {

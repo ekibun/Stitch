@@ -25,17 +25,20 @@
     <string name="menu_capture">截图</string>
     <string name="menu_save">导出</string>
 
-    <string name="about_dialog_title">关于Stitch</string>
-    <string name="about_dialog_message">
-        截图拼接小工具\n
-        1. 点击导入/截图添加图片\n
-        2. 截图模式下，点击悬浮按钮添加屏幕截图，长按按钮打开编辑窗口\n
-        3. 点击圆圈选择图片修改拼接参数，或拖动圆圈移动位置\n
-        4. 自动拼接采用opencv计算，可以用于拼接地图，请保持足够的重合区域\n
-        5. 拼接数据将在软件重启或点击快捷按钮后清除，编辑完成后请尽快导出\n
+    <string name="guidance_info">
+        &lt;big>&lt;big>&lt;b>Stitch&lt;/b>&lt;/big>&lt;/big>&lt;br/>
+        截图拼接小工具&lt;br/>
+        &lt;small>%1$s&lt;/small>&lt;br/>
+        &lt;br/>
+        1. 点击导入/截图添加图片&lt;br/>
+        2. 截图模式下，点击悬浮按钮添加屏幕截图，长按按钮打开编辑窗口&lt;br/>
+        3. 点击圆圈选择图片修改拼接参数，或拖动圆圈移动位置&lt;br/>
+        4. 自动拼接采用opencv计算，可以用于拼接地图，请保持足够的重合区域&lt;br/>
+        5. 拼接数据将在软件重启或点击快捷按钮后清除，编辑完成后请尽快导出&lt;br/>
         Enjoy~
     </string>
-    <string name="about_dialog_support">打赏</string>
-    <string name="about_dialog_github">GitHub</string>
-    <string name="about_dialog_button">确定</string>
+    <string name="menu_support">打赏</string>
+    <string name="support_error">请安装支付宝后进行操作</string>
+    <string name="menu_github">GitHub</string>
+    <string name="open_error">无法打开浏览器</string>
 </resources>
