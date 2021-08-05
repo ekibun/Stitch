@@ -2,6 +2,7 @@ package soko.ekibun.stitch
 
 import android.graphics.Bitmap
 import android.graphics.Path
+import android.graphics.RectF
 import kotlin.math.roundToInt
 
 object Stitch {
@@ -16,6 +17,7 @@ object Stitch {
         var x: Int = 0
         var y: Int = 0
         val path: Path by lazy { Path() }
+        val bound: RectF by lazy { RectF() }
 
         val key get() = System.identityHashCode(this)
     }

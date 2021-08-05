@@ -156,9 +156,7 @@ class EditActivity : AppCompatActivity() {
                     }
                     runOnUiThread {
                         progress.cancel()
-                        layoutManager.updateRange()
-                        editView.invalidate()
-                        updateSelectInfo()
+                        updateRange()
                     }
                 }
             }
@@ -203,8 +201,7 @@ class EditActivity : AppCompatActivity() {
                 it.dx = it.x - b.x
                 it.dy = it.y - b.y
             }
-            layoutManager.updateRange()
-            editView.invalidate()
+            updateRange()
         }
         findViewById<View>(R.id.menu_remove).setOnClickListener {
             if (selected.isEmpty()) {
@@ -216,8 +213,7 @@ class EditActivity : AppCompatActivity() {
                 .setPositiveButton(getString(R.string.alert_ok)) { _: DialogInterface, _: Int ->
                     App.stitchInfo.removeAll { selected.contains(it.key) }
                     selected.clear()
-                    layoutManager.updateRange()
-                    editView.invalidate()
+                    updateRange()
                     updateSelectInfo()
                 }.show()
         }
@@ -253,9 +249,7 @@ class EditActivity : AppCompatActivity() {
                     it
                 }
                 runOnUiThread {
-                    layoutManager.updateRange()
-                    editView.invalidate()
-                    updateSelectInfo()
+                    updateRange()
                     progress.cancel()
                 }
             }
@@ -290,8 +284,7 @@ class EditActivity : AppCompatActivity() {
                 App.stitchInfo.forEach {
                     if (selected.contains(it.key)) it.dx = (progress - 10) * it.width / 10
                 }
-                layoutManager.updateRange()
-                editView.invalidate()
+                updateRange()
             }
 
             override fun onStartTrackingTouch(p0: SeekBar?) {}
@@ -304,8 +297,7 @@ class EditActivity : AppCompatActivity() {
                 App.stitchInfo.forEach {
                     if (selected.contains(it.key)) it.dy = (progress - 10) * it.height / 10
                 }
-                layoutManager.updateRange()
-                editView.invalidate()
+                updateRange()
             }
 
             override fun onStartTrackingTouch(p0: SeekBar?) {}
@@ -318,8 +310,7 @@ class EditActivity : AppCompatActivity() {
                 App.stitchInfo.forEach {
                     if (selected.contains(it.key)) it.trim = progress / 20f
                 }
-                layoutManager.updateRange()
-                editView.invalidate()
+                updateRange()
             }
 
             override fun onStartTrackingTouch(p0: SeekBar?) {}
@@ -327,10 +318,16 @@ class EditActivity : AppCompatActivity() {
         })
     }
 
+    fun updateRange() {
+        layoutManager.update()
+        updateSelectInfo()
+        decorator.cacheBitmap = null
+        editView.invalidate()
+    }
+
     override fun onResume() {
         super.onResume()
         if (selected.isEmpty()) selectAll()
-        layoutManager.updateRange()
-        editView.invalidate()
+        updateRange()
     }
 }

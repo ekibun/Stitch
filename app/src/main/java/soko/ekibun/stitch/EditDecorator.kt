@@ -1,9 +1,13 @@
 package soko.ekibun.stitch
 
 import android.annotation.SuppressLint
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
 import android.view.MotionEvent
 import android.view.View
+import androidx.core.graphics.applyCanvas
 import androidx.core.graphics.withClip
 import androidx.recyclerview.widget.RecyclerView
 import kotlin.math.abs
@@ -31,23 +35,27 @@ class EditDecorator(private val activity: EditActivity) : RecyclerView.ItemDecor
     }
     private val dp: Float by lazy { App.resources.displayMetrics.density }
 
-    private fun drawToCanvas(c: Canvas, parent: RecyclerView?) {
-        // bitmap
-        App.stitchInfo.forEach {
-            if (it.x + it.width < c.clipBounds.left ||
-                it.x > c.clipBounds.right ||
-                it.y > c.clipBounds.bottom ||
-                it.y + it.height < c.clipBounds.top
-            ) return@forEach
+    var cacheBitmap: Bitmap? = null
+    private var cacheIndex = 0
 
+    private fun drawToCanvas(c: Canvas, parent: RecyclerView?) {
+        for (i in (if (parent == null) 0 else cacheIndex) until App.stitchInfo.size) {
+            cacheIndex = i
+            val it = App.stitchInfo.getOrNull(i) ?: continue
+            if (it.bound.left > c.clipBounds.right ||
+                it.bound.right < c.clipBounds.left ||
+                it.bound.top > c.clipBounds.bottom ||
+                it.bound.bottom < c.clipBounds.top
+            ) continue
             val bmp = (if (parent != null) App.bitmapCache.tryGetBitmap(it.image) {
                 parent.invalidate()
-            } else App.bitmapCache.getBitmap(it.image)) ?: return@forEach
+            } else App.bitmapCache.getBitmap(it.image)) ?: return
             c.withClip(it.path)
             {
                 drawBitmap(bmp, it.x.toFloat(), it.y.toFloat(), null)
             }
         }
+        cacheIndex = App.stitchInfo.size
     }
 
     fun drawToBitmap(lm: EditLayoutManager): Bitmap {
@@ -58,15 +66,37 @@ class EditDecorator(private val activity: EditActivity) : RecyclerView.ItemDecor
         return bitmap
     }
 
+    private var lastX = 0f
+    private var lastY = 0f
+    private var lastScale = 0f
     override fun onDraw(c: Canvas, parent: RecyclerView, state: RecyclerView.State) {
         super.onDraw(c, parent, state)
         val layoutManager = parent.layoutManager as EditLayoutManager
         val (transX, transY, scale) = layoutManager.getTranslate()
+
+        val bitmap = (if (lastX == transX && lastY == transY && lastScale == scale
+            && cacheBitmap?.width == parent.width && cacheBitmap?.height == parent.height
+        ) {
+            cacheBitmap
+        } else null) ?: run {
+            cacheIndex = 0
+            Bitmap.createBitmap(parent.width, parent.height, Bitmap.Config.ARGB_8888)
+        }
+        cacheBitmap = bitmap
+        lastX = transX
+        lastY = transY
+        lastScale = scale
+        bitmap.applyCanvas {
+            translate(transX, transY)
+            scale(scale, scale)
+            drawToCanvas(this, parent)
+        }
+        if (cacheIndex == App.stitchInfo.size)
+            c.drawBitmap(bitmap, 0f, 0f, null)
+
         val savaCount = c.save()
         c.translate(transX, transY)
         c.scale(scale, scale)
-        // bitmap
-        drawToCanvas(c, parent)
         // control
         controlPaint.strokeWidth = 3 * dp / scale
         controlSelectedPaint.strokeWidth = controlPaint.strokeWidth
@@ -160,8 +190,7 @@ class EditDecorator(private val activity: EditActivity) : RecyclerView.ItemDecor
                     if (abs(downX - event.x) > 10 || abs(downY - event.y) > 10) {
                         dragging = true
                     }
-                    layoutManager.updateRange()
-                    parent.invalidate()
+                    activity.updateRange()
                 }
 
             }

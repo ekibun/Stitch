@@ -24,7 +24,7 @@ class EditLayoutManager : RecyclerView.LayoutManager() {
         return arrayOf(transX, transY, scale)
     }
 
-    fun updateRange() {
+    fun update() {
         var lastX = 0
         var lastY = 0
         var lastW = 0
@@ -105,6 +105,7 @@ class EditLayoutManager : RecyclerView.LayoutManager() {
                     )
                 }
             }
+            it.path.computeBounds(it.bound, true)
         }
         offsetX = max(minX * scale, min(maxX * scale - width, offsetX * scale)) / scale
         offsetY = max(minY * scale, min(maxY * scale - height, offsetY * scale)) / scale
