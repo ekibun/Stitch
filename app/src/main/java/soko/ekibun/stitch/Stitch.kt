@@ -3,7 +3,6 @@ package soko.ekibun.stitch
 import android.graphics.Bitmap
 import android.graphics.Path
 import android.graphics.RectF
-import kotlin.math.roundToInt
 
 object Stitch {
     data class StitchInfo(
@@ -26,14 +25,5 @@ object Stitch {
         System.loadLibrary("stitch")
     }
 
-    private external fun combineNative(img0: Bitmap, img1: Bitmap, array: DoubleArray): Boolean
-    fun combine(img0: Bitmap, img1: Bitmap, info: StitchInfo): Boolean {
-        val data = DoubleArray(9)
-        if (combineNative(img0, img1, data)) {
-            info.dx = data[2].roundToInt()
-            info.dy = data[5].roundToInt()
-            return true
-        }
-        return false
-    }
+    external fun combineNative(img0: Bitmap, img1: Bitmap, array: DoubleArray): Boolean
 }

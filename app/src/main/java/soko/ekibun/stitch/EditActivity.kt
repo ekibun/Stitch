@@ -222,7 +222,7 @@ class EditActivity : AppCompatActivity() {
                 Toast.makeText(this, R.string.please_add_image, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            val progress = ProgressDialog.show(this, null, getString(R.string.alert_stitching))
+            val progress = ProgressDialog.show(this, null, getString(R.string.alert_reading))
             GlobalScope.launch(Dispatchers.Default) {
                 val bitmap = decorator.drawToBitmap(layoutManager)
                 runOnUiThread {
@@ -236,14 +236,20 @@ class EditActivity : AppCompatActivity() {
                 Toast.makeText(this, R.string.please_select_image, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            val progress = ProgressDialog.show(this, null, getString(R.string.alert_computing))
+            val progress = ProgressDialog(this)
+            progress.setMessage(getString(R.string.alert_computing))
+            progress.show()
             GlobalScope.launch(Dispatchers.Default) {
                 App.stitchInfo.reduceOrNull { acc, it ->
-                    if (selected.contains(it.key)) {
+                    if (progress.isShowing && selected.contains(it.key)) {
                         val img0 = App.bitmapCache.getBitmap(acc.image)
                         val img1 = App.bitmapCache.getBitmap(it.image)
                         if (img0 != null && img1 != null) {
-                            Stitch.combine(img0, img1, it)
+                            val data = DoubleArray(9)
+                            if (Stitch.combineNative(img0, img1, data) && progress.isShowing) {
+                                it.dx = data[2].roundToInt()
+                                it.dy = data[5].roundToInt()
+                            }
                         }
                     }
                     it
