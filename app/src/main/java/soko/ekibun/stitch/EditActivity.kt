@@ -13,7 +13,9 @@ import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.text.Html
+import android.text.method.LinkMovementMethod
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
@@ -103,6 +105,23 @@ class EditActivity : AppCompatActivity() {
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val sp = PreferenceManager.getDefaultSharedPreferences(this)
+        val policyVersion = getString(R.string.policy_version)
+        if (sp.getString("policy_version", "") != policyVersion) {
+            val policyView = TextView(this)
+            policyView.text = Html.fromHtml(getString(R.string.policy))
+            val padding = (resources.displayMetrics.density * 16).roundToInt()
+            policyView.setPaddingRelative(padding, padding, padding, 0)
+            policyView.movementMethod = LinkMovementMethod.getInstance()
+            AlertDialog.Builder(this).setCancelable(false).setView(policyView)
+                .setPositiveButton(R.string.policy_accept) { _, _ ->
+                    sp.edit().putString("policy_version", policyVersion).apply()
+                }.setNegativeButton(R.string.policy_dismiss) { _, _ ->
+                    finish()
+                }.show()
+        }
+
         setContentView(R.layout.activity_edit)
         editView.layoutManager = layoutManager
         editView.adapter = EmptyAdapter()
@@ -262,6 +281,28 @@ class EditActivity : AppCompatActivity() {
         }
         val str = getString(R.string.guidance_info, getVersion(this))
         findViewById<TextView>(R.id.guidance_info).text = Html.fromHtml(str)
+        findViewById<TextView>(R.id.menu_terms).setOnClickListener {
+            try {
+                val intent = Intent(Intent.ACTION_VIEW)
+                intent.data = Uri.parse("https://ekibun.github.io/Stitch/$policyVersion/terms")
+                startActivity(intent)
+            } catch (e: Exception) {
+                Toast.makeText(this, R.string.open_error, Toast.LENGTH_SHORT).show()
+            }
+        }
+        findViewById<TextView>(R.id.menu_privacy).setOnClickListener {
+            try {
+                val intent = Intent(Intent.ACTION_VIEW)
+                intent.data = Uri.parse("https://ekibun.github.io/Stitch/$policyVersion/privacy")
+                startActivity(intent)
+            } catch (e: Exception) {
+                Toast.makeText(this, R.string.open_error, Toast.LENGTH_SHORT).show()
+            }
+        }
+        findViewById<TextView>(R.id.menu_opensource).setOnClickListener {
+            AlertDialog.Builder(this).setMessage(Html.fromHtml(getString(R.string.opensource)))
+                .show()
+        }
         findViewById<TextView>(R.id.menu_support).setOnClickListener {
             val intentFullUrl = "intent://platformapi/startapp?saId=10000007&" +
                     "qrcode=https%3A%2F%2Fqr.alipay.com%2Ffkx14754b1r4mkbh6gfgg24#Intent;" +

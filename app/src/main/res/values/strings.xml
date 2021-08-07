@@ -44,4 +44,47 @@
     <string name="menu_github">GitHub</string>
     <string name="open_error">无法打开浏览器</string>
     <string name="menu_swap">换序</string>
+
+    <string name="policy_version">v1</string>
+    <string name="policy">
+欢迎使用Stitch截图拼接小工具。&lt;br />
+&lt;br />
+在您使用本产品前，请仔细阅读&lt;a href="https://ekibun.github.io/Stitch/v1/terms">《用户协议》&lt;/a>和&lt;a href="https://ekibun.github.io/Stitch/v1/privacy">《隐私政策》&lt;/a>。&lt;br />
+&lt;br />
+您点击“接受”即表示您已阅读并同意上述条款。我们会遵循隐私政策获取和使用您设备的权限，不会在功能服务不需要时通过您授权的权限收集信息，也不会存储和上传任何用户信息。&lt;br />
+    </string>
+    <string name="policy_accept">接受</string>
+    <string name="policy_dismiss">不接受</string>
+    <string name="menu_terms">用户协议</string>
+    <string name="menu_privacy">隐私政策</string>
+    <string name="opensource">
+        &lt;b>Kotlin Stdlib&lt;/b>&lt;br/>
+        Kotlin Standard Library for JVM&lt;br/>
+        Apache License, Version 2.0&lt;br/>
+        &lt;br/>
+        &lt;b>Core Kotlin Extensions&lt;/b>&lt;br/>
+        Kotlin extensions for &#180;core&#180; artifact&lt;br/>
+        Apache License, Version 2.0&lt;br/>
+        &lt;br/>
+        &lt;b>Android AppCompat Library&lt;/b>&lt;br/>
+        The Support Library is a static library that you can add to your Android application in order to use APIs that are either not available for older platform versions or utility APIs that aren&#180;t a part of the framework APIs. Compatible on devices running API 14 or later.&lt;br/>
+        Apache License, Version 2.0&lt;br/>
+        &lt;br/>
+        &lt;b>Material Components For Android&lt;/b>&lt;br/>
+        Material Components for Android is a static library that you can add to your Android application in order to use APIs that provide implementations of the Material Design specification. Compatible on devices running API 14 or later.&lt;br/>
+        Apache License, Version 2.0&lt;br/>
+        &lt;br/>
+        &lt;b>Kotlinx Coroutines Core&lt;/b>&lt;br/>
+        Coroutines support libraries for Kotlin&lt;br/>
+        Apache License, Version 2.0&lt;br/>
+        &lt;br/>
+        &lt;b>Kotlinx Coroutines Android&lt;/b>&lt;br/>
+        Coroutines support libraries for Kotlin&lt;br/>
+        Apache License, Version 2.0&lt;br/>
+        &lt;br/>
+        &lt;b>OpenCV&lt;/b>&lt;br/>
+        Open Source Computer Vision Library&lt;br/>
+        Apache License, Version 2.0
+    </string>
+    <string name="menu_opensource">开源许可协议</string>
 </resources>

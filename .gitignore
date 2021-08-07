@@ -14,5 +14,6 @@
 .cxx
 local.properties
 # Project exclude paths
+/policy/
 opencv/
 /app/release/

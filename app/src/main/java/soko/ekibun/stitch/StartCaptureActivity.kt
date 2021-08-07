@@ -5,6 +5,7 @@ import android.content.Intent
 import android.media.projection.MediaProjectionManager
 import android.net.Uri
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
@@ -24,8 +25,15 @@ class StartCaptureActivity : AppCompatActivity() {
         }
     }
 
+    @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val sp = PreferenceManager.getDefaultSharedPreferences(this)
+        val policyVersion = getString(R.string.policy_version)
+        if (sp.getString("policy_version", "") != policyVersion) {
+            startActivity(Intent(this, EditActivity::class.java))
+            finish()
+        }
         requestCapture = registerForActivityResult(
             CaptureContract()
         ) {

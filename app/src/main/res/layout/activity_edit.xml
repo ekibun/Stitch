@@ -24,41 +24,87 @@
             android:layout_height="match_parent"
             android:contextClickable="true">
 
-            <TextView
-                android:id="@+id/guidance_info"
+            <ScrollView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:padding="8dp"
-                android:text="@string/guidance_info"
-                app:layout_constraintBottom_toTopOf="@+id/menu_support"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_chainStyle="packed"
-                app:layout_constraintWidth_percent="0.7" />
+                app:layout_constraintWidth_percent="0.7">
 
-            <TextView
-                android:id="@+id/menu_support"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="8dp"
-                android:text="@string/menu_support"
-                android:textColor="?android:attr/textColorPrimary"
-                android:background="?selectableItemBackgroundBorderless"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="@+id/guidance_info"
-                app:layout_constraintTop_toBottomOf="@+id/guidance_info" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/menu_github"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="8dp"
-                android:text="@string/menu_github"
-                android:textColor="?android:attr/textColorPrimary"
-                android:background="?selectableItemBackgroundBorderless"
-                app:layout_constraintStart_toEndOf="@+id/menu_support"
-                app:layout_constraintTop_toBottomOf="@+id/guidance_info" />
+                    <TextView
+                        android:id="@+id/guidance_info"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="8dp"
+                        tools:text="@string/guidance_info" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:id="@+id/menu_terms"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="?selectableItemBackgroundBorderless"
+                            android:padding="8dp"
+                            android:text="@string/menu_terms"
+                            android:textColor="@color/colorPrimary"
+                            app:layout_constraintBottom_toBottomOf="parent" />
+
+                        <TextView
+                            android:id="@+id/menu_privacy"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="?selectableItemBackgroundBorderless"
+                            android:padding="8dp"
+                            android:text="@string/menu_privacy"
+                            android:textColor="@color/colorPrimary" />
+
+                        <TextView
+                            android:id="@+id/menu_opensource"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="?selectableItemBackgroundBorderless"
+                            android:padding="8dp"
+                            android:text="@string/menu_opensource"
+                            android:textColor="?android:attr/textColorPrimary" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:id="@+id/menu_support"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="?selectableItemBackgroundBorderless"
+                            android:padding="8dp"
+                            android:text="@string/menu_support"
+                            android:textColor="?android:attr/textColorPrimary"
+                            app:layout_constraintBottom_toBottomOf="parent" />
+
+                        <TextView
+                            android:id="@+id/menu_github"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="?selectableItemBackgroundBorderless"
+                            android:padding="8dp"
+                            android:text="@string/menu_github"
+                            android:textColor="?android:attr/textColorPrimary" />
+                    </LinearLayout>
+                </LinearLayout>
+            </ScrollView>
+
+
         </androidx.constraintlayout.widget.ConstraintLayout>
     </FrameLayout>
 
