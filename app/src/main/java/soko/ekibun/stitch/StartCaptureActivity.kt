@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package soko.ekibun.stitch
 
 import android.content.Context
@@ -25,7 +27,6 @@ class StartCaptureActivity : AppCompatActivity() {
         }
     }
 
-    @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val sp = PreferenceManager.getDefaultSharedPreferences(this)

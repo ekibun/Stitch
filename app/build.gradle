@@ -30,7 +30,7 @@ android {
 
     defaultConfig {
         applicationId "soko.ekibun.stitch"
-        minSdkVersion 23
+        minSdkVersion 21
         targetSdkVersion 30
         versionCode gitVersionCode()
         versionName gitVersionTag()
@@ -39,6 +39,20 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    flavorDimensions "abi"
+    productFlavors {
+        universal {
+            dimension "abi"
+        }
+        arm {
+            dimension "abi"
+            externalNativeBuild {
+                cmake {
+                    abiFilters "armeabi-v7a"
+                }
+            }
         }
     }
     compileOptions {

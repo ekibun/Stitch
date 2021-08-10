@@ -21,7 +21,7 @@ bool BitmapToMatrix(JNIEnv *env, jobject obj_bitmap, cv::Mat &matrix) {
     cv::Mat tmp(bitmapInfo.height, bitmapInfo.width, CV_8UC4, bitmapPixels);
     tmp.copyTo(matrix);
 
-    AndroidBitmap_unlockPixels(env, obj_bitmap);            // 解锁
+    AndroidBitmap_unlockPixels(env, obj_bitmap);
     return true;
 }
 
