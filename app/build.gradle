@@ -37,8 +37,16 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    signingConfigs {
+        debug {
+            keyAlias 'ekibun'
+            keyPassword 'ekibun'
+            storeFile file('D:/OneDrive/ekibun.jks')
+            storePassword 'ekibun'
         }
     }
     flavorDimensions "abi"

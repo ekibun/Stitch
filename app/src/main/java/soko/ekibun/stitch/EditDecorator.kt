@@ -17,14 +17,22 @@ import kotlin.math.sqrt
 class EditDecorator(private val activity: EditActivity) : RecyclerView.ItemDecoration(),
     View.OnTouchListener {
 
+    @Suppress("DEPRECATION")
     private val controlPaint by lazy {
         Paint().apply {
-            color = App.resources.getColor(R.color.colorPrimary, null)
+            color = App.resources.getColor(R.color.colorPrimary)
         }
     }
+
+    @Suppress("DEPRECATION")
     private val controlSelectedPaint by lazy {
         Paint().apply {
-            color = App.resources.getColor(R.color.colorWarn, null)
+            color = App.resources.getColor(R.color.colorWarn)
+        }
+    }
+    private val maskPaint by lazy {
+        Paint().apply {
+            color = Color.argb(128, 128, 128, 128)
         }
     }
     private val controlPaintText by lazy {
@@ -39,6 +47,7 @@ class EditDecorator(private val activity: EditActivity) : RecyclerView.ItemDecor
     private var cacheIndex = 0
 
     private fun drawToCanvas(c: Canvas, parent: RecyclerView?) {
+        val layoutManager = parent?.layoutManager as? EditLayoutManager
         for (i in (if (parent == null) 0 else cacheIndex) until App.stitchInfo.size) {
             cacheIndex = i
             val it = App.stitchInfo.getOrNull(i) ?: continue
@@ -53,6 +62,15 @@ class EditDecorator(private val activity: EditActivity) : RecyclerView.ItemDecor
             c.withClip(it.path)
             {
                 drawBitmap(bmp, it.x.toFloat(), it.y.toFloat(), null)
+                if (layoutManager != null &&
+                    activity.selected.isNotEmpty() &&
+                    activity.selected.contains(it.key)
+                ) {
+                    c.drawRect(
+                        it.bound,
+                        maskPaint
+                    )
+                }
             }
         }
         cacheIndex = App.stitchInfo.size

@@ -1,6 +1,7 @@
 package soko.ekibun.stitch
 
 import android.graphics.Path
+import android.graphics.RectF
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import kotlin.math.abs
@@ -33,15 +34,9 @@ class EditLayoutManager : RecyclerView.LayoutManager() {
         maxY = 0
         minX = 0
         minY = 0
-        App.stitchInfo.firstOrNull()?.let {
-            offsetX -= it.dx
-            offsetY -= it.dy
-            it.dx = 0
-            it.dy = 0
-        }
-        App.stitchInfo.forEach {
-            it.x = lastX + it.dx
-            it.y = lastY + it.dy
+        App.stitchInfo.forEachIndexed { i, it ->
+            it.x = if (i == 0) 0 else lastX + it.dx - (it.width - lastW) / 2
+            it.y = if (i == 0) 0 else lastY + it.dy - (it.height - lastH) / 2
 
             minX = min(minX, it.x)
             minY = min(minY, it.y)
@@ -68,44 +63,54 @@ class EditLayoutManager : RecyclerView.LayoutManager() {
                 it.y + it.height.toFloat(),
                 Path.Direction.CW
             )
-            if (abs(transX) < abs(transY)) {
+            val over = if (overR < overL || overB < overT) {
+                RectF(0f, 0f, 0f, 0f)
+            } else if (abs(transX) < abs(transY)) {
                 if (transY > 0) {
-                    it.path.addRect(
+                    RectF(
                         overL.toFloat(),
                         overT.toFloat(),
                         overR.toFloat(),
-                        overT * (1 - it.trim) + overB * it.trim,
-                        Path.Direction.CCW
+                        overT * (1 - it.trim) + overB * it.trim
                     )
                 } else {
-                    it.path.addRect(
+                    RectF(
                         overL.toFloat(),
                         overT * it.trim + overB * (1 - it.trim),
                         overR.toFloat(),
-                        overB.toFloat(),
-                        Path.Direction.CCW
+                        overB.toFloat()
                     )
                 }
             } else {
                 if (transX > 0) {
-                    it.path.addRect(
+                    RectF(
                         overL.toFloat(),
                         overT.toFloat(),
                         overL * (1 - it.trim) + overR * it.trim,
-                        overB.toFloat(),
-                        Path.Direction.CCW
+                        overB.toFloat()
                     )
                 } else {
-                    it.path.addRect(
+                    RectF(
                         overL * it.trim + overR * (1 - it.trim),
                         overT.toFloat(),
                         overR.toFloat(),
-                        overB.toFloat(),
-                        Path.Direction.CCW
+                        overB.toFloat()
                     )
                 }
             }
-            it.path.computeBounds(it.bound, true)
+            it.path.addRect(over, Path.Direction.CCW)
+            it.bound.left =
+                if (over.height() == it.height.toFloat() && over.left == it.x.toFloat())
+                    over.right else it.x.toFloat()
+            it.bound.right =
+                if (over.height() == it.height.toFloat() && over.right == it.x.toFloat() + it.width)
+                    over.left else it.x.toFloat() + it.width
+            it.bound.top =
+                if (over.width() == it.width.toFloat() && over.top == it.y.toFloat())
+                    over.bottom else it.y.toFloat()
+            it.bound.bottom =
+                if (over.width() == it.width.toFloat() && over.bottom == it.y.toFloat() + it.width)
+                    over.top else it.y.toFloat() + it.height
         }
         offsetX = max(minX * scale, min(maxX * scale - width, offsetX * scale)) / scale
         offsetY = max(minY * scale, min(maxY * scale - height, offsetY * scale)) / scale

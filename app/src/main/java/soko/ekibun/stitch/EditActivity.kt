@@ -45,6 +45,7 @@ class EditActivity : AppCompatActivity() {
     }
 
     private fun updateSelectInfo() {
+        decorator.cacheBitmap = null
         guidanceView.visibility = if (App.stitchInfo.isEmpty()) View.VISIBLE else View.INVISIBLE
         selectInfo.text = getString(R.string.label_select, selected.size, App.stitchInfo.size)
         editView.invalidate()
@@ -161,7 +162,7 @@ class EditActivity : AppCompatActivity() {
         ) {
             selected.clear()
             if (it.resultCode == RESULT_OK) {
-                val progress = ProgressDialog.show(this, null, getString(R.string.alert_stitching))
+                val progress = ProgressDialog.show(this, null, getString(R.string.alert_reading))
                 GlobalScope.launch(Dispatchers.Default) {
                     val clipData = it.data?.clipData
                     if (clipData != null) {
@@ -204,22 +205,14 @@ class EditActivity : AppCompatActivity() {
                 .sorted()
             if (i < 0 || j < 0) return@setOnClickListener
             val a = App.stitchInfo[i]
-            val b = App.stitchInfo.set(j, App.stitchInfo[i])
+            val b = App.stitchInfo.set(j, a)
             App.stitchInfo[i] = b
             val adx = a.dx
             val ady = a.dy
-            a.dx = a.x - b.x + b.dx
-            a.dy = a.y - b.y + b.dy
-            App.stitchInfo.getOrNull(j + 1)?.let {
-                it.dx = it.x - a.x
-                it.dy = it.y - a.y
-            }
-            b.dx = b.x - a.x + adx
-            b.dy = b.y - a.y + ady
-            App.stitchInfo.getOrNull(i + 1)?.let {
-                it.dx = it.x - b.x
-                it.dy = it.y - b.y
-            }
+            a.dx = b.dx
+            a.dy = b.dy
+            b.dx = adx
+            b.dy = ady
             updateRange()
         }
         findViewById<View>(R.id.menu_remove).setOnClickListener {
@@ -241,7 +234,7 @@ class EditActivity : AppCompatActivity() {
                 Toast.makeText(this, R.string.please_add_image, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            val progress = ProgressDialog.show(this, null, getString(R.string.alert_reading))
+            val progress = ProgressDialog.show(this, null, getString(R.string.alert_stitching))
             GlobalScope.launch(Dispatchers.Default) {
                 val bitmap = decorator.drawToBitmap(layoutManager)
                 runOnUiThread {
@@ -368,7 +361,6 @@ class EditActivity : AppCompatActivity() {
     fun updateRange() {
         layoutManager.update()
         updateSelectInfo()
-        decorator.cacheBitmap = null
         editView.invalidate()
     }
 

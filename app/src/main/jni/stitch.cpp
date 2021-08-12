@@ -56,14 +56,8 @@ JNIEXPORT jboolean Java_soko_ekibun_stitch_Stitch_combineNative(
     std::vector<cv::Point2f> queryPoints, trainPoints;
     for (auto &knnMatch : knnMatches) {
         if (knnMatch[0].distance > 0.7 * knnMatch[1].distance) continue;
-        cv::Point2f q0 = kp0[knnMatch[0].queryIdx].pt;
-        cv::Point2f q1 = kp0[knnMatch[1].queryIdx].pt;
-        cv::Point2f t0 = kp1[knnMatch[0].trainIdx].pt;
-        cv::Point2f t1 = kp1[knnMatch[1].trainIdx].pt;
-        if (q0.x - q1.x - t0.x + t1.x > 0.2 * knnMatch[1].distance) continue;
-        if (q0.y - q1.y - t0.y + t1.y > 0.2 * knnMatch[1].distance) continue;
-        queryPoints.push_back(q0);
-        trainPoints.push_back(t0);
+        queryPoints.push_back(kp0[knnMatch[0].queryIdx].pt);
+        trainPoints.push_back(kp1[knnMatch[0].trainIdx].pt);
     }
     if (queryPoints.size() < 10) return false;
     cv::Mat homo = cv::findHomography(trainPoints, queryPoints, cv::RANSAC);

@@ -19,7 +19,7 @@ class BitmapCache(var context: Context) {
 
     fun shareBitmap(context: Context, bitmap: Bitmap) {
         try {
-            val fileName = System.currentTimeMillis().toString(16)
+            val fileName = System.currentTimeMillis().toString(16) + ".png"
             val imageFile = File(cacheDirPath, fileName)
             imageFile.parentFile?.mkdirs()
             val stream = imageFile.outputStream()
