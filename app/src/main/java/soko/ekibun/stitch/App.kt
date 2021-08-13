@@ -1,7 +1,6 @@
 package soko.ekibun.stitch
 
 import android.app.Application
-import android.content.res.Resources
 
 class App : Application() {
     private val bitmapCache by lazy { BitmapCache(this) }
@@ -17,6 +16,6 @@ class App : Application() {
         private lateinit var app: App
         val bitmapCache get() = app.bitmapCache
         val stitchInfo get() = app.stitchInfo
-        val resources: Resources get() = app.resources
+        var foreground = false
     }
 }

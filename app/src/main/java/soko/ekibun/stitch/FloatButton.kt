@@ -9,12 +9,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import android.widget.RelativeLayout
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class FloatButton(var service: CaptureService) {
     private var windowManager: WindowManager
     private var floatLayout: RelativeLayout?
-    private var floatView: FloatingActionButton
+    private var floatView: View
     fun destroy() {
         if (floatLayout != null) {
             //移除悬浮窗口
@@ -41,8 +40,7 @@ class FloatButton(var service: CaptureService) {
         @SuppressLint("InflateParams")
         floatLayout = inflater.inflate(R.layout.float_button, null) as RelativeLayout?
         windowManager.addView(floatLayout, wmParams)
-        floatView =
-            floatLayout!!.findViewById<View>(R.id.floatingActionButton) as FloatingActionButton
+        floatView = floatLayout!!.findViewById(R.id.floatingActionButton)
 
         //点击
         floatView.setOnClickListener { // 截屏

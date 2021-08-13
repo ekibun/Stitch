@@ -45,7 +45,7 @@ class QuickTileService : TileService() {
     }
 
     private fun refreshState() {
-        if (CaptureService.isServiceRunning(applicationContext)) {
+        if (App.foreground) {
             qsTile.state = Tile.STATE_ACTIVE
             qsTile.label = "Stitching"
         } else {

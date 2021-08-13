@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -11,101 +10,89 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <androidx.recyclerview.widget.RecyclerView
+        <soko.ekibun.stitch.EditView
             android:id="@+id/edit"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layout_constraintTop_toTopOf="parent"
             tools:visibility="invisible" />
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <ScrollView
             android:id="@+id/guidance"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:contextClickable="true">
+            android:clipToPadding="false"
+            android:fillViewport="true">
 
-            <ScrollView
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintWidth_percent="0.7">
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="40dp">
+
+                <TextView
+                    android:id="@+id/guidance_info"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    tools:text="@string/guidance_info" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:layout_height="wrap_content">
 
                     <TextView
-                        android:id="@+id/guidance_info"
-                        android:layout_width="match_parent"
+                        android:id="@+id/menu_terms"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
                         android:padding="8dp"
-                        tools:text="@string/guidance_info" />
+                        android:text="@string/menu_terms"
+                        android:textColor="@color/colorPrimary" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                    <TextView
+                        android:id="@+id/menu_privacy"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:padding="8dp"
+                        android:text="@string/menu_privacy"
+                        android:textColor="@color/colorPrimary" />
 
-                        <TextView
-                            android:id="@+id/menu_terms"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="?selectableItemBackgroundBorderless"
-                            android:padding="8dp"
-                            android:text="@string/menu_terms"
-                            android:textColor="@color/colorPrimary"
-                            app:layout_constraintBottom_toBottomOf="parent" />
-
-                        <TextView
-                            android:id="@+id/menu_privacy"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="?selectableItemBackgroundBorderless"
-                            android:padding="8dp"
-                            android:text="@string/menu_privacy"
-                            android:textColor="@color/colorPrimary" />
-
-                        <TextView
-                            android:id="@+id/menu_opensource"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="?selectableItemBackgroundBorderless"
-                            android:padding="8dp"
-                            android:text="@string/menu_opensource"
-                            android:textColor="?android:attr/textColorPrimary" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <TextView
-                            android:id="@+id/menu_support"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="?selectableItemBackgroundBorderless"
-                            android:padding="8dp"
-                            android:text="@string/menu_support"
-                            android:textColor="?android:attr/textColorPrimary"
-                            app:layout_constraintBottom_toBottomOf="parent" />
-
-                        <TextView
-                            android:id="@+id/menu_github"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="?selectableItemBackgroundBorderless"
-                            android:padding="8dp"
-                            android:text="@string/menu_github"
-                            android:textColor="?android:attr/textColorPrimary" />
-                    </LinearLayout>
+                    <TextView
+                        android:id="@+id/menu_opensource"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:padding="8dp"
+                        android:text="@string/menu_opensource"
+                        android:textColor="?android:attr/textColorPrimary" />
                 </LinearLayout>
-            </ScrollView>
 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                    <TextView
+                        android:id="@+id/menu_support"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:padding="8dp"
+                        android:text="@string/menu_support"
+                        android:textColor="?android:attr/textColorPrimary" />
+
+                    <TextView
+                        android:id="@+id/menu_github"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:padding="8dp"
+                        android:text="@string/menu_github"
+                        android:textColor="?android:attr/textColorPrimary" />
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
     </FrameLayout>
 
 
@@ -113,12 +100,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:elevation="10dp"
+        android:background="?android:colorBackground"
         android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?android:attr/colorBackgroundFloating"
             android:orientation="horizontal"
             android:padding="8dp">
 
@@ -126,7 +113,7 @@
                 android:id="@+id/menu_select_all"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?selectableItemBackgroundBorderless"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:padding="8dp"
                 android:text="@string/menu_select_all"
                 android:textColor="?android:attr/textColorPrimary" />
@@ -135,7 +122,7 @@
                 android:id="@+id/menu_select_clear"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?selectableItemBackgroundBorderless"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:padding="8dp"
                 android:text="@string/menu_select_clear"
                 android:textColor="?android:attr/textColorPrimary" />
@@ -145,7 +132,6 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="?selectableItemBackgroundBorderless"
                 android:padding="8dp"
                 tools:text="已选中 8/10" />
 
@@ -153,7 +139,7 @@
                 android:id="@+id/menu_swap"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?selectableItemBackgroundBorderless"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:padding="8dp"
                 android:text="@string/menu_swap"
                 android:textColor="?android:attr/textColorPrimary" />
@@ -162,7 +148,7 @@
                 android:id="@+id/menu_remove"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?selectableItemBackgroundBorderless"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:padding="8dp"
                 android:text="@string/menu_remove"
                 android:textColor="@color/colorWarn" />
@@ -171,7 +157,7 @@
                 android:id="@+id/menu_auto_stitch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?selectableItemBackgroundBorderless"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:padding="8dp"
                 android:text="@string/menu_auto_stitch"
                 android:textColor="@color/colorPrimary" />
@@ -180,8 +166,9 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?android:attr/colorBackgroundFloating"
             android:baselineAligned="false"
+            android:gravity="center"
+            android:paddingHorizontal="16dp"
             android:orientation="horizontal">
 
             <LinearLayout
@@ -192,7 +179,6 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
                     android:layout_marginTop="4dp"
                     android:padding="8dp"
                     android:text="@string/label_dx" />
@@ -200,7 +186,6 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
                     android:layout_marginTop="8dp"
                     android:padding="8dp"
                     android:text="@string/label_dy" />
@@ -208,7 +193,6 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="4dp"
                     android:padding="8dp"
@@ -221,24 +205,20 @@
                 android:layout_weight="1"
                 android:orientation="vertical">
 
-                <SeekBar
+                <soko.ekibun.stitch.CenterSeekbar
                     android:id="@+id/seek_x"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:max="20"
-                    android:progress="10"
                     tools:ignore="NestedWeights" />
 
-                <SeekBar
+                <soko.ekibun.stitch.CenterSeekbar
                     android:id="@+id/seek_y"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:max="20"
-                    android:progress="10" />
+                    android:layout_weight="1" />
 
-                <SeekBar
+                <soko.ekibun.stitch.RangeSeekbar
                     android:id="@+id/seek_trim"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
@@ -259,7 +239,7 @@
                 android:id="@+id/menu_import"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?selectableItemBackgroundBorderless"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:padding="8dp"
                 android:text="@string/menu_import"
                 android:textColor="?android:attr/textColorPrimary" />
@@ -268,7 +248,7 @@
                 android:id="@+id/menu_capture"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?selectableItemBackgroundBorderless"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:padding="8dp"
                 android:text="@string/menu_capture"
                 android:textColor="?android:attr/textColorPrimary" />
@@ -282,7 +262,7 @@
                 android:id="@+id/menu_save"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?selectableItemBackgroundBorderless"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:padding="8dp"
                 android:text="@string/menu_save"
                 android:textColor="@color/colorPrimary" />

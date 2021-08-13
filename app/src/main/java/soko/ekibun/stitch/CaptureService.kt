@@ -1,6 +1,5 @@
 package soko.ekibun.stitch
 
-import android.app.ActivityManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -49,12 +48,14 @@ class CaptureService : Service() {
 
     override fun onCreate() {
         startService(Intent(this, QuickTileService::class.java))
+        App.foreground = true
         floatButton.run { }
         notification.run { }
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        App.foreground = false
         stopForeground(true)
         screenCapture?.destroy()
         floatButton.destroy()
@@ -78,25 +79,8 @@ class CaptureService : Service() {
     }
 
     companion object {
-        @Suppress("DEPRECATION")
-        fun isServiceRunning(context: Context): Boolean {
-            val activityManager = context.getSystemService(ACTIVITY_SERVICE) as ActivityManager
-            val serviceList = activityManager.getRunningServices(Int.MAX_VALUE)
-            if (serviceList.size <= 0) {
-                return false
-            }
-            for (i in serviceList.indices) {
-                val serviceInfo = serviceList[i]
-                val serviceName = serviceInfo.service
-                if (serviceName.className == CaptureService::class.java.name) {
-                    return true
-                }
-            }
-            return false
-        }
-
         fun startService(context: Context) {
-            if (isServiceRunning(context)) return
+            if (App.foreground) return
             val intent = Intent(context, StartCaptureActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
             context.startActivity(intent)

@@ -3,6 +3,7 @@
 package soko.ekibun.stitch
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.AlertDialog
 import android.app.ProgressDialog
 import android.content.Context
@@ -16,46 +17,40 @@ import android.os.Bundle
 import android.preference.PreferenceManager
 import android.text.Html
 import android.text.method.LinkMovementMethod
-import android.view.MotionEvent
-import android.view.ScaleGestureDetector
 import android.view.View
-import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
-class EditActivity : AppCompatActivity() {
-    private val editView by lazy { findViewById<RecyclerView>(R.id.edit) }
+class EditActivity : Activity() {
+    private val editView by lazy { findViewById<EditView>(R.id.edit) }
     private val guidanceView by lazy { findViewById<View>(R.id.guidance) }
     private val selectInfo by lazy { findViewById<TextView>(R.id.select_info) }
-    private val seekbarX by lazy { findViewById<SeekBar>(R.id.seek_x) }
-    private val seekbarY by lazy { findViewById<SeekBar>(R.id.seek_y) }
-    private val seekbarTrim by lazy { findViewById<SeekBar>(R.id.seek_trim) }
-    private val layoutManager by lazy { EditLayoutManager() }
-    private val decorator by lazy { EditDecorator(this) }
+    private val seekDx by lazy { findViewById<CenterSeekbar>(R.id.seek_x) }
+    private val seekDy by lazy { findViewById<CenterSeekbar>(R.id.seek_y) }
+    private val seekTrim by lazy { findViewById<RangeSeekbar>(R.id.seek_trim) }
 
     val selected by lazy {
         mutableSetOf<Int>()
     }
 
     private fun updateSelectInfo() {
-        decorator.cacheBitmap = null
+        editView.dirty = true
         guidanceView.visibility = if (App.stitchInfo.isEmpty()) View.VISIBLE else View.INVISIBLE
         selectInfo.text = getString(R.string.label_select, selected.size, App.stitchInfo.size)
         editView.invalidate()
         val selected = App.stitchInfo.filterIndexed { i, it -> i > 0 && selected.contains(it.key) }
         if (selected.isNotEmpty()) {
-            seekbarX.progress =
-                (selected.map { it.dx.toFloat() / it.width }.average() * 10 + 10).roundToInt()
-            seekbarY.progress =
-                (selected.map { it.dy.toFloat() / it.height }.average() * 10 + 10).roundToInt()
-            seekbarTrim.progress = (selected.map { it.trim }.average() * 20).roundToInt()
+            seekDx.a = selected.map { it.dx.toFloat() / it.width }.average().toFloat()
+            seekDy.a = selected.map { it.dy.toFloat() / it.height }.average().toFloat()
+            seekTrim.a = selected.map { it.a }.average().toFloat()
+            seekTrim.b = selected.map { it.b }.average().toFloat()
+            seekDx.invalidate()
+            seekDy.invalidate()
+            seekTrim.invalidate()
         }
     }
 
@@ -124,68 +119,12 @@ class EditActivity : AppCompatActivity() {
         }
 
         setContentView(R.layout.activity_edit)
-        editView.layoutManager = layoutManager
-        editView.adapter = EmptyAdapter()
-        editView.addItemDecoration(decorator)
 
-        var beginScale = 0f
-        val scaleGestureDetector = ScaleGestureDetector(
-            this,
-            object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
-                override fun onScaleBegin(detector: ScaleGestureDetector?): Boolean {
-                    beginScale = layoutManager.scale
-                    return super.onScaleBegin(detector)
-                }
-
-                override fun onScale(detector: ScaleGestureDetector): Boolean {
-                    val oldScale = layoutManager.scale
-                    layoutManager.scale = 0.6f.coerceAtLeast(beginScale * detector.scaleFactor)
-                    editView.scrollBy(
-                        (detector.focusX * (layoutManager.scale - oldScale) / oldScale).toInt(),
-                        (detector.focusY * (layoutManager.scale - oldScale) / oldScale).toInt(),
-                    )
-                    return super.onScale(detector)
-                }
-            })
-        var tapOnScroll = false
-        editView.setOnTouchListener { _, event ->
-            if (event.actionMasked == MotionEvent.ACTION_DOWN) {
-                tapOnScroll = editView.scrollState != RecyclerView.SCROLL_STATE_IDLE
-            }
-            if (event.pointerCount > 1) tapOnScroll = false
-            if (!tapOnScroll)
-                scaleGestureDetector.onTouchEvent(event)
-            decorator.onTouch(editView, event)
-        }
-        val reg = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) {
-            selected.clear()
-            if (it.resultCode == RESULT_OK) {
-                val progress = ProgressDialog.show(this, null, getString(R.string.alert_reading))
-                GlobalScope.launch(Dispatchers.Default) {
-                    val clipData = it.data?.clipData
-                    if (clipData != null) {
-                        val count: Int =
-                            clipData.itemCount
-                        for (i in 0 until count) {
-                            addImage(clipData.getItemAt(i).uri)
-                        }
-                    } else it.data?.data?.let { path ->
-                        addImage(path)
-                    }
-                    runOnUiThread {
-                        progress.cancel()
-                        updateRange()
-                    }
-                }
-            }
-        }
         findViewById<View>(R.id.menu_import).setOnClickListener {
             val intent = Intent(Intent.ACTION_GET_CONTENT)
             intent.type = "image/*"
             intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-            reg.launch(Intent.createChooser(intent, "Stitch"))
+            startActivityForResult(Intent.createChooser(intent, "Stitch"), 1)
         }
         findViewById<View>(R.id.menu_capture).setOnClickListener {
             this.startActivity(Intent(this, StartCaptureActivity::class.java))
@@ -236,7 +175,7 @@ class EditActivity : AppCompatActivity() {
             }
             val progress = ProgressDialog.show(this, null, getString(R.string.alert_stitching))
             GlobalScope.launch(Dispatchers.Default) {
-                val bitmap = decorator.drawToBitmap(layoutManager)
+                val bitmap = editView.drawToBitmap()
                 runOnUiThread {
                     progress.cancel()
                     App.bitmapCache.shareBitmap(this@EditActivity, bitmap)
@@ -317,56 +256,66 @@ class EditActivity : AppCompatActivity() {
             }
         }
 
-        seekbarX.setOnSeekBarChangeListener(object :
-            SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(p0: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (!fromUser) return
-                App.stitchInfo.forEach {
-                    if (selected.contains(it.key)) it.dx = (progress - 10) * it.width / 10
-                }
-                updateRange()
+        seekDx.onRangeChange = { a ->
+            App.stitchInfo.forEach {
+                if (selected.contains(it.key)) it.dx = (a * it.width).roundToInt()
             }
-
-            override fun onStartTrackingTouch(p0: SeekBar?) {}
-            override fun onStopTrackingTouch(p0: SeekBar?) {}
-        })
-        seekbarY.setOnSeekBarChangeListener(object :
-            SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(p0: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (!fromUser) return
-                App.stitchInfo.forEach {
-                    if (selected.contains(it.key)) it.dy = (progress - 10) * it.height / 10
-                }
-                updateRange()
+            updateRange()
+        }
+        seekDy.onRangeChange = { a ->
+            App.stitchInfo.forEach {
+                if (selected.contains(it.key)) it.dy = (a * it.height).roundToInt()
             }
-
-            override fun onStartTrackingTouch(p0: SeekBar?) {}
-            override fun onStopTrackingTouch(p0: SeekBar?) {}
-        })
-        seekbarTrim.setOnSeekBarChangeListener(object :
-            SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(p0: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (!fromUser) return
-                App.stitchInfo.forEach {
-                    if (selected.contains(it.key)) it.trim = progress / 20f
+            updateRange()
+        }
+        seekTrim.onRangeChange = { a, b ->
+            App.stitchInfo.forEach {
+                if (selected.contains(it.key)) {
+                    it.a = a
+                    it.b = b
                 }
-                updateRange()
             }
+            updateRange()
+        }
+    }
 
-            override fun onStartTrackingTouch(p0: SeekBar?) {}
-            override fun onStopTrackingTouch(p0: SeekBar?) {}
-        })
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (resultCode == RESULT_OK) {
+            selected.clear()
+            val progress = ProgressDialog.show(this, null, getString(R.string.alert_reading))
+            GlobalScope.launch(Dispatchers.Default) {
+                val clipData = data?.clipData
+                if (clipData != null) {
+                    val count: Int =
+                        clipData.itemCount
+                    for (i in 0 until count) {
+                        addImage(clipData.getItemAt(i).uri)
+                    }
+                } else data?.data?.let { path ->
+                    addImage(path)
+                }
+                runOnUiThread {
+                    progress.cancel()
+                    updateRange()
+                }
+            }
+        }
     }
 
     fun updateRange() {
-        layoutManager.update()
+        editView.update()
         updateSelectInfo()
-        editView.invalidate()
     }
 
     override fun onResume() {
         super.onResume()
         if (selected.isEmpty()) selectAll()
         updateRange()
+    }
+
+    override fun onBackPressed() {
+        if (selected.isEmpty())
+            super.onBackPressed()
+        else selectClear()
     }
 }

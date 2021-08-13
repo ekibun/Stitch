@@ -8,9 +8,6 @@ import android.os.Environment
 import android.util.LruCache
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -32,7 +29,7 @@ class BitmapCache(var context: Context) {
                 val shareIntent = Intent()
                 shareIntent.action = Intent.ACTION_SEND
                 shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) // temp permission for receiving app to read this file
-                shareIntent.setDataAndType(contentUri, "image/*")
+                shareIntent.setDataAndType(contentUri, "image/png")
                 shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri)
                 context.startActivity(Intent.createChooser(shareIntent, "Stitch"))
             }
@@ -72,21 +69,6 @@ class BitmapCache(var context: Context) {
     }
 
     private val defers = hashMapOf<String, Deferred<Bitmap?>>()
-
-    fun tryGetBitmap(key: String, onGet: (Bitmap?) -> Unit): Bitmap? {
-        val bitmap = memoryCache[key]
-        if (bitmap == null) GlobalScope.launch {
-            val bmp = defers.getOrPut(key) {
-                GlobalScope.async {
-                    getBitmapFromDisk(key)
-                }
-            }.await()
-            if (bmp != null) addBitmapToMemoryCache(key, bmp)
-            onGet(bmp)
-            defers.remove(key)?.join()
-        }
-        return bitmap
-    }
 
     fun getBitmap(key: String): Bitmap? {
         val bitmap = memoryCache[key]
