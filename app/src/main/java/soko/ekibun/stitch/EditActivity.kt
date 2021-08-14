@@ -11,13 +11,16 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.text.Html
 import android.text.method.LinkMovementMethod
 import android.view.View
+import android.view.WindowManager
 import android.widget.TextView
 import android.widget.Toast
 import kotlinx.coroutines.Dispatchers
@@ -98,6 +101,19 @@ class EditActivity : Activity() {
         }
     }
 
+    private fun updateSystemUI() {
+        if (Build.VERSION.SDK_INT >= 28) window.attributes.layoutInDisplayCutoutMode =
+            WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+                (if (Build.VERSION.SDK_INT >= 26) View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION else 0)
+        if (Build.VERSION.SDK_INT < 26) return
+        val night = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+                Configuration.UI_MODE_NIGHT_YES
+        if (!night) window.decorView.systemUiVisibility = window.decorView.systemUiVisibility or
+                View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR or
+                View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -119,6 +135,28 @@ class EditActivity : Activity() {
         }
 
         setContentView(R.layout.activity_edit)
+
+        window.decorView.setOnApplyWindowInsetsListener { _, windowInsets ->
+            editView.setPadding(
+                windowInsets.systemWindowInsetLeft,
+                windowInsets.systemWindowInsetTop,
+                windowInsets.systemWindowInsetRight,
+                0
+            )
+            findViewById<View>(R.id.panel1).setPadding(
+                windowInsets.systemWindowInsetLeft,
+                0,
+                windowInsets.systemWindowInsetRight,
+                0
+            )
+            findViewById<View>(R.id.panel2).setPadding(
+                windowInsets.systemWindowInsetLeft,
+                0,
+                windowInsets.systemWindowInsetRight,
+                windowInsets.systemWindowInsetBottom
+            )
+            windowInsets.consumeSystemWindowInsets()
+        }
 
         findViewById<View>(R.id.menu_import).setOnClickListener {
             val intent = Intent(Intent.ACTION_GET_CONTENT)
@@ -311,6 +349,7 @@ class EditActivity : Activity() {
         super.onResume()
         if (selected.isEmpty()) selectAll()
         updateRange()
+        updateSystemUI()
     }
 
     override fun onBackPressed() {

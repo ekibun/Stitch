@@ -36,8 +36,8 @@ class StartCaptureActivity : Activity() {
                 startService(service)
             } else {
                 Toast.makeText(this, R.string.request_failed, Toast.LENGTH_SHORT).show()
-                finish()
             }
+            finish()
         }
     }
 

@@ -1,11 +1,13 @@
 package soko.ekibun.stitch
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.*
-import android.widget.Scroller
+import android.widget.EdgeEffect
+import android.widget.OverScroller
 import androidx.core.graphics.applyCanvas
 import androidx.core.graphics.withSave
 import kotlinx.coroutines.*
@@ -19,10 +21,17 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
     private var maxX = 0
     private var maxY = 0
     var scale = 0.8f
-    private var offsetX = 0f
-    private var offsetY = 0f
     val rangeX get() = maxX - minX
     val rangeY get() = maxY - minY
+
+    private val minScrollY get() = minY * scale
+    private val maxScrollY get() = max(minScrollY, maxY * scale - height + paddingTop)
+    private val minScrollX get() = minX * scale
+    private val maxScrollX
+        get() = max(
+            minScrollX,
+            maxX * scale - width + paddingLeft + paddingRight
+        )
 
     @Suppress("DEPRECATION")
     private val colorPrimary by lazy { resources.getColor(R.color.colorPrimary) }
@@ -36,9 +45,10 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
         }
     }
 
+    @Suppress("DEPRECATION")
     private val maskPaint by lazy {
         Paint().apply {
-            color = (0x88888888).toInt()
+            color = resources.getColor(R.color.opaque)
         }
     }
 
@@ -50,6 +60,7 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
     private fun CoroutineScope.drawToCanvas(c: Canvas, drawMask: Boolean = true) {
         val activity = context as? EditActivity
+        val over = RectF()
         for (i in 0 until App.stitchInfo.size) {
             if (!isActive) break
             val it = App.stitchInfo.getOrNull(i) ?: continue
@@ -57,6 +68,8 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
             val y = it.y
             val width = it.width
             val height = it.height
+            over.set(it.over)
+
             if (x > c.clipBounds.right ||
                 x + width < c.clipBounds.left ||
                 y > c.clipBounds.bottom ||
@@ -86,7 +99,7 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
                 )
             }
             gradientPaint.shader = it.shader
-            c.drawRect(it.over, gradientPaint)
+            c.drawRect(over, gradientPaint)
             c.restoreToCount(l)
         }
     }
@@ -103,10 +116,10 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
     private fun getTranslate(): Array<Float> {
         val scale = scale
-        val transX = max(0f, (width - rangeX * scale) / 2) -
-                offsetX * scale
-        val transY = max(0f, (height - rangeY * scale) / 2) -
-                offsetY * scale
+        val transX = max(0f, (width - paddingLeft - paddingRight - rangeX * scale) / 2) -
+                scrollX + paddingLeft
+        val transY = max(0f, (height - paddingTop - rangeY * scale) / 2) -
+                scrollY + paddingTop
         return arrayOf(transX, transY)
     }
 
@@ -124,8 +137,8 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
                     val oldScale = scale
                     scale = 0.6f.coerceAtLeast(beginScale * detector.scaleFactor)
                     scrollBy(
-                        (detector.focusX * (scale - oldScale) / oldScale).toInt(),
-                        (detector.focusY * (scale - oldScale) / oldScale).toInt(),
+                        ((detector.focusX + scrollX) * (scale - oldScale) / oldScale).roundToInt(),
+                        ((detector.focusY + scrollY) * (scale - oldScale) / oldScale).roundToInt(),
                     )
                     return super.onScale(detector)
                 }
@@ -224,8 +237,40 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
                 }
             }
         }
-        offsetX = max(minX * scale, min(maxX * scale - width, offsetX * scale)) / scale
-        offsetY = max(minY * scale, min(maxY * scale - height, offsetY * scale)) / scale
+        clampScroll()
+    }
+
+    private val edgeEffectTop by lazy {
+        EdgeEffect(context).apply {
+            blendMode = BlendMode.SRC_OVER
+        }
+    }
+    private val edgeEffectBottom by lazy {
+        EdgeEffect(context).apply {
+            blendMode = BlendMode.SRC_OVER
+        }
+    }
+    private val edgeEffectLeft by lazy {
+        EdgeEffect(context).apply {
+            blendMode = BlendMode.SRC_OVER
+        }
+    }
+    private val edgeEffectRight by lazy {
+        EdgeEffect(context).apply {
+            blendMode = BlendMode.SRC_OVER
+        }
+    }
+
+    private fun clampScroll() {
+        val oldX = scrollX
+        val oldY = scrollY
+        scrollX = max(minScrollX, min(maxScrollX, oldX.toFloat())).roundToInt()
+        scrollY = max(minScrollY, min(maxScrollY, oldY.toFloat())).roundToInt()
+    }
+
+    override fun scrollBy(x: Int, y: Int) {
+        super.scrollBy(x, y)
+        clampScroll()
     }
 
     init {
@@ -234,41 +279,43 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
     val lock = ReentrantLock()
     var dirty = false
+
+    @SuppressLint("DrawAllocation")
     override fun onDraw(c: Canvas) {
+        c.translate(scrollX.toFloat(), scrollY.toFloat())
         val activity = context as? EditActivity
         val (transX, transY) = getTranslate()
         val scale = scale
-        lock.withLock {
-            if (dirty || lastX != transX || lastY != transY || lastScale != scale) {
-                dirty = false
-                val lastDeferred = deferred
-                @SuppressLint("DrawAllocation")
-                deferred = GlobalScope.async {
-                    lastDeferred?.cancelAndJoin()
-                    if (!isActive) return@async
-                    val bitmap =
-                        (if (cacheBitmap2?.width == width && cacheBitmap2?.height == height)
-                            cacheBitmap2 else null)
-                            ?: Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-                    cacheBitmap2 = bitmap
-                    bitmap.eraseColor(Color.TRANSPARENT)
-                    bitmap.applyCanvas {
-                        translate(transX, transY)
-                        scale(scale, scale)
-                        drawToCanvas(this)
-                    }
-                    if (!isActive) return@async
-                    lock.withLock {
-                        val cache = cacheBitmap
-                        cacheBitmap = cacheBitmap2
-                        cacheBitmap2 = cache
-                        lastX = transX
-                        lastY = transY
-                        lastScale = scale
-                    }
-                    postInvalidate()
+        if (dirty || lastX != transX || lastY != transY || lastScale != scale) {
+            dirty = false
+            val lastDeferred = deferred
+            deferred = GlobalScope.async {
+                lastDeferred?.cancelAndJoin()
+                if (!isActive) return@async
+                val bitmap =
+                    (if (cacheBitmap2?.width == width && cacheBitmap2?.height == height)
+                        cacheBitmap2 else null)
+                        ?: Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                cacheBitmap2 = bitmap
+                bitmap.eraseColor(Color.TRANSPARENT)
+                bitmap.applyCanvas {
+                    translate(transX, transY)
+                    scale(scale, scale)
+                    drawToCanvas(this)
                 }
+                if (!isActive) return@async
+                lock.withLock {
+                    val cache = cacheBitmap
+                    cacheBitmap = cacheBitmap2
+                    cacheBitmap2 = cache
+                    lastX = transX
+                    lastY = transY
+                    lastScale = scale
+                }
+                postInvalidate()
             }
+        }
+        lock.withLock {
             c.withSave {
                 val diff = scale / lastScale
                 c.translate(transX - lastX * diff, transY - lastY * diff)
@@ -325,6 +372,42 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
                 it
             }
         }
+
+        if (!edgeEffectTop.isFinished) {
+            edgeEffectTop.setSize(width, height)
+            if (edgeEffectTop.draw(c)) {
+                postInvalidateOnAnimation()
+            }
+        }
+        if (!edgeEffectBottom.isFinished) c.withSave {
+            edgeEffectBottom.setSize(width, height)
+            translate(width.toFloat(), height.toFloat())
+            rotate(180f)
+            if (edgeEffectBottom.draw(this)) {
+                postInvalidateOnAnimation()
+            }
+        }
+        if (!edgeEffectLeft.isFinished) c.withSave {
+            edgeEffectLeft.setSize(height, width)
+            translate(0f, height.toFloat())
+            rotate(-90f)
+            if (edgeEffectLeft.draw(this)) {
+                postInvalidateOnAnimation()
+            }
+        }
+        if (!edgeEffectRight.isFinished) c.withSave {
+            edgeEffectRight.setSize(height, width)
+            translate(width.toFloat(), 0f)
+            rotate(90f)
+            if (edgeEffectRight.draw(this)) {
+                postInvalidateOnAnimation()
+            }
+        }
+
+        // status bar
+        val clr = (context as? Activity)?.window?.statusBarColor ?: Color.TRANSPARENT
+        paint.color = clr and 0xffffff + 0xaa000000.toInt()
+        c.drawRect(0f, 0f, width.toFloat(), paddingTop.toFloat(), paint)
     }
 
     private var touching: Stitch.StitchInfo? = null
@@ -337,41 +420,29 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
     private var downOffsetY: Float = 0f
     private var touchPointerId: Int = -1
 
-    private fun scrollHorizontallyBy(dx: Int): Int {
-        val oldX = offsetX * scale
-        val newX = max(minX * scale, min(maxX * scale - width, oldX + dx))
-        offsetX = newX / scale
-        return (newX - oldX).toInt()
-    }
-
-    private fun scrollVerticallyBy(dy: Int): Int {
-        val oldY = offsetY * scale
-        val newY = max(minY * scale, min(maxY * scale - height, oldY + dy))
-        offsetY = newY / scale
-        return (newY - oldY).toInt()
-    }
-
-    override fun scrollBy(dx: Int, dy: Int) {
-        scrollHorizontallyBy(dx)
-        scrollVerticallyBy(dy)
-        invalidate()
-    }
-
     private val velocityTracker by lazy { VelocityTracker.obtain() }
-    private val scroller by lazy { Scroller(context) }
-    private val maxVelocity by lazy { ViewConfiguration.get(context).scaledMaximumFlingVelocity }
+    private val scroller by lazy { OverScroller(context) }
 
     override fun computeScroll() {
         super.computeScroll()
         if (scroller.computeScrollOffset()) {
-            offsetX = max(
-                minX * scale,
-                min(maxX * scale - width, scroller.currX.toFloat() * scale)
-            ) / scale
-            offsetY = max(
-                minY * scale,
-                min(maxY * scale - height, scroller.currY.toFloat() * scale)
-            ) / scale
+            val oldX = scrollX
+            val oldY = scrollY
+            val newX = scroller.currX
+            val newY = scroller.currY
+            scrollTo(newX, newY)
+            clampScroll()
+
+            if (minScrollX.roundToInt() in newX until oldX) {
+                edgeEffectLeft.onAbsorb(scroller.currVelocity.toInt())
+            } else if (maxScrollX.roundToInt() in (oldX + 1)..newX) {
+                edgeEffectRight.onAbsorb(scroller.currVelocity.toInt())
+            }
+            if (minScrollY.roundToInt() in newY until oldY) {
+                edgeEffectTop.onAbsorb(scroller.currVelocity.toInt())
+            } else if (maxScrollY.roundToInt() in (oldY + 1)..newY) {
+                edgeEffectBottom.onAbsorb(scroller.currVelocity.toInt())
+            }
             postInvalidate()
         }
     }
@@ -423,17 +494,25 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
                 if (!dragging && touching != null)
                     (context as? EditActivity)?.selectToggle(touching)
                 else if (touching == null) {
-                    velocityTracker.computeCurrentVelocity(1000, maxVelocity.toFloat())
+                    velocityTracker.computeCurrentVelocity(1000)
+                    val xvel = velocityTracker.xVelocity
+                    val yvel = velocityTracker.yVelocity
                     scroller.fling(
-                        offsetX.roundToInt(),
-                        offsetY.roundToInt(),
-                        (-velocityTracker.xVelocity / scale).roundToInt(),
-                        (-velocityTracker.yVelocity / scale).roundToInt(),
-                        minX,
-                        maxX,
-                        minY,
-                        maxY
+                        scrollX,
+                        scrollY,
+                        (-xvel).roundToInt(),
+                        (-yvel).roundToInt(),
+                        minScrollX.roundToInt(),
+                        maxScrollX.roundToInt(),
+                        minScrollY.roundToInt(),
+                        maxScrollY.roundToInt(),
+                        width / 2,
+                        height / 2
                     )
+                    edgeEffectLeft.onRelease()
+                    edgeEffectRight.onRelease()
+                    edgeEffectTop.onRelease()
+                    edgeEffectBottom.onRelease()
                 }
             }
             MotionEvent.ACTION_MOVE -> {
@@ -458,11 +537,31 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
                         (context as? EditActivity)?.updateRange()
                     }
                 } else {
-                    val dx = lastTouchX - event.getX(index)
-                    val dy = lastTouchY - event.getY(index)
-                    scrollBy(dx.roundToInt(), dy.roundToInt())
+                    val oldX = scrollX
+                    val oldY = scrollY
+                    val dx = (lastTouchX - event.getX(index)).roundToInt()
+                    val dy = (lastTouchY - event.getY(index)).roundToInt()
+
+                    scrollBy(dx, dy)
                     lastTouchX = event.getX(index)
                     lastTouchY = event.getY(index)
+
+                    val overX = (oldX + dx - scrollX).toFloat() / width
+                    val overY = (oldY + dy - scrollY).toFloat() / height
+                    if (overX < 0) {
+                        edgeEffectLeft.onPull(overX)
+                        edgeEffectRight.onRelease()
+                    } else if (overX > 0) {
+                        edgeEffectRight.onPull(overX)
+                        edgeEffectLeft.onRelease()
+                    }
+                    if (overY < 0) {
+                        edgeEffectTop.onPull(overY)
+                        edgeEffectBottom.onRelease()
+                    } else if (overY > 0) {
+                        edgeEffectBottom.onPull(overY)
+                        edgeEffectTop.onRelease()
+                    }
                 }
             }
         }

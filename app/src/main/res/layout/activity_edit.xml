@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -100,146 +101,155 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:elevation="10dp"
-        android:background="?android:colorBackground"
+        android:background="@color/colorBackgroundFloating"
         android:orientation="vertical">
 
         <LinearLayout
+            android:id="@+id/panel1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="8dp">
-
-            <TextView
-                android:id="@+id/menu_select_all"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:padding="8dp"
-                android:text="@string/menu_select_all"
-                android:textColor="?android:attr/textColorPrimary" />
-
-            <TextView
-                android:id="@+id/menu_select_clear"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:padding="8dp"
-                android:text="@string/menu_select_clear"
-                android:textColor="?android:attr/textColorPrimary" />
-
-            <TextView
-                android:id="@+id/select_info"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:padding="8dp"
-                tools:text="已选中 8/10" />
-
-            <TextView
-                android:id="@+id/menu_swap"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:padding="8dp"
-                android:text="@string/menu_swap"
-                android:textColor="?android:attr/textColorPrimary" />
-
-            <TextView
-                android:id="@+id/menu_remove"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:padding="8dp"
-                android:text="@string/menu_remove"
-                android:textColor="@color/colorWarn" />
-
-            <TextView
-                android:id="@+id/menu_auto_stitch"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:padding="8dp"
-                android:text="@string/menu_auto_stitch"
-                android:textColor="@color/colorPrimary" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:baselineAligned="false"
-            android:gravity="center"
-            android:paddingHorizontal="16dp"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="horizontal"
+                android:padding="8dp">
 
                 <TextView
+                    android:id="@+id/menu_select_all"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
                     android:padding="8dp"
-                    android:text="@string/label_dx" />
+                    android:text="@string/menu_select_all"
+                    android:textColor="?android:attr/textColorPrimary" />
 
                 <TextView
+                    android:id="@+id/menu_select_clear"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
                     android:padding="8dp"
-                    android:text="@string/label_dy" />
+                    android:text="@string/menu_select_clear"
+                    android:textColor="?android:attr/textColorPrimary" />
 
                 <TextView
+                    android:id="@+id/select_info"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:padding="8dp"
+                    tools:text="已选中 8/10" />
+
+                <TextView
+                    android:id="@+id/menu_swap"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="4dp"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
                     android:padding="8dp"
-                    android:text="@string/label_trim" />
+                    android:text="@string/menu_swap"
+                    android:textColor="?android:attr/textColorPrimary" />
+
+                <TextView
+                    android:id="@+id/menu_remove"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:padding="8dp"
+                    android:text="@string/menu_remove"
+                    android:textColor="@color/colorWarn" />
+
+                <TextView
+                    android:id="@+id/menu_auto_stitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:padding="8dp"
+                    android:text="@string/menu_auto_stitch"
+                    android:textColor="@color/colorPrimary" />
             </LinearLayout>
 
             <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:orientation="vertical">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:baselineAligned="false"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingHorizontal="16dp">
 
-                <soko.ekibun.stitch.CenterSeekbar
-                    android:id="@+id/seek_x"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:padding="8dp"
+                        android:text="@string/label_dx" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:padding="8dp"
+                        android:text="@string/label_dy" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="4dp"
+                        android:padding="8dp"
+                        android:text="@string/label_trim" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
                     android:layout_weight="1"
-                    tools:ignore="NestedWeights" />
+                    android:orientation="vertical">
 
-                <soko.ekibun.stitch.CenterSeekbar
-                    android:id="@+id/seek_y"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1" />
+                    <soko.ekibun.stitch.CenterSeekbar
+                        android:id="@+id/seek_x"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        tools:ignore="NestedWeights" />
 
-                <soko.ekibun.stitch.RangeSeekbar
-                    android:id="@+id/seek_trim"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:max="20"
-                    android:progress="10" />
+                    <soko.ekibun.stitch.CenterSeekbar
+                        android:id="@+id/seek_y"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1" />
+
+                    <soko.ekibun.stitch.RangeSeekbar
+                        android:id="@+id/seek_trim"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:max="20"
+                        android:progress="10" />
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/panel2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/opaque"
-            android:orientation="horizontal"
-            android:padding="8dp">
+            android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/menu_import"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:layout_marginVertical="8dp"
+                android:layout_marginStart="8dp"
                 android:padding="8dp"
                 android:text="@string/menu_import"
                 android:textColor="?android:attr/textColorPrimary" />
@@ -250,6 +260,7 @@
                 android:layout_height="wrap_content"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:padding="8dp"
+                android:layout_marginVertical="8dp"
                 android:text="@string/menu_capture"
                 android:textColor="?android:attr/textColorPrimary" />
 
@@ -264,6 +275,8 @@
                 android:layout_height="wrap_content"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:padding="8dp"
+                android:layout_marginVertical="8dp"
+                android:layout_marginEnd="8dp"
                 android:text="@string/menu_save"
                 android:textColor="@color/colorPrimary" />
         </LinearLayout>

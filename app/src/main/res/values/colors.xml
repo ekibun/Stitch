@@ -2,6 +2,6 @@
 <resources>
     <color name="colorPrimary">#4284F3</color>
     <color name="colorWarn">#f44</color>
-    <color name="transparent">#0000</color>
     <color name="opaque">#4888</color>
+    <color name="colorBackgroundFloating">#fff</color>
 </resources>
