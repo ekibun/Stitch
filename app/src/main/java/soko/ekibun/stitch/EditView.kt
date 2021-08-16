@@ -46,9 +46,11 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
     }
 
     @Suppress("DEPRECATION")
-    private val maskPaint by lazy {
+    private val maskColor by lazy { resources.getColor(R.color.opaque) }
+
+    private val overPaint by lazy {
         Paint().apply {
-            color = resources.getColor(R.color.opaque)
+            xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OVER)
         }
     }
 
@@ -58,11 +60,11 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
         }
     }
 
-    private fun CoroutineScope.drawToCanvas(c: Canvas, drawMask: Boolean = true) {
+    private fun drawToCanvas(c: Canvas, drawMask: Boolean = true) {
         val activity = context as? EditActivity
         val over = RectF()
+        val path = Path()
         for (i in 0 until App.stitchInfo.size) {
-            if (!isActive) break
             val it = App.stitchInfo.getOrNull(i) ?: continue
             val x = it.x
             val y = it.y
@@ -76,31 +78,36 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
                 y + height < c.clipBounds.top
             ) continue
             val bmp = App.bitmapCache.getBitmap(it.image) ?: return
-
-            val l = c.saveLayer(
-                x.toFloat(),
-                y.toFloat(),
-                x.toFloat() + width,
-                y.toFloat() + height,
-                null
+            path.reset()
+            path.addRect(
+                x.toFloat(), y.toFloat(), x.toFloat() + width, y.toFloat() + height,
+                Path.Direction.CW
             )
+            if (over.right > over.left && over.bottom > over.top) {
+                it.shader?.let { shader ->
+                    gradientPaint.shader = shader
+                    c.drawRect(over, gradientPaint)
+                }
+                path.addRect(over, Path.Direction.CCW)
+            }
+            gradientPaint.shader = null
+            c.drawPath(path, gradientPaint)
 
-            c.drawBitmap(bmp, x.toFloat(), y.toFloat(), null)
             if (drawMask && activity != null &&
                 activity.selected.isNotEmpty() &&
                 activity.selected.contains(it.key)
             ) {
+                overPaint.color = maskColor
                 c.drawRect(
                     x.toFloat(),
                     y.toFloat(),
                     x.toFloat() + width,
                     y.toFloat() + height,
-                    maskPaint
+                    overPaint
                 )
             }
-            gradientPaint.shader = it.shader
-            c.drawRect(over, gradientPaint)
-            c.restoreToCount(l)
+            overPaint.color = Color.BLACK
+            c.drawBitmap(bmp, x.toFloat(), y.toFloat(), overPaint)
         }
     }
 
@@ -148,7 +155,6 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
     private var lastX = 0f
     private var lastY = 0f
     private var lastScale = 0f
-    private var deferred: Deferred<*>? = null
     private var cacheBitmap: Bitmap? = null
     private var cacheBitmap2: Bitmap? = null
 
@@ -186,8 +192,8 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
                         0f,
                         it.over.left + (it.over.right - it.over.left) * it.b,
                         0f,
-                        Color.WHITE,
                         Color.TRANSPARENT,
+                        Color.WHITE,
                         Shader.TileMode.CLAMP
                     ) else {
                         it.over.right = it.over.left + (it.over.right - it.over.left) * it.a
@@ -199,8 +205,8 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
                         0f,
                         it.over.right - (it.over.right - it.over.left) * it.b,
                         0f,
-                        Color.WHITE,
                         Color.TRANSPARENT,
+                        Color.WHITE,
                         Shader.TileMode.CLAMP
                     ) else {
                         it.over.left = it.over.right - (it.over.right - it.over.left) * it.a
@@ -214,8 +220,8 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
                         it.over.top + (it.over.bottom - it.over.top) * it.a,
                         0f,
                         it.over.top + (it.over.bottom - it.over.top) * it.b,
-                        Color.WHITE,
                         Color.TRANSPARENT,
+                        Color.WHITE,
                         Shader.TileMode.CLAMP
                     ) else {
                         it.over.bottom = it.over.top + (it.over.bottom - it.over.top) * it.a
@@ -227,8 +233,8 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
                         it.over.bottom - (it.over.bottom - it.over.top) * it.a,
                         0f,
                         it.over.bottom - (it.over.bottom - it.over.top) * it.b,
-                        Color.WHITE,
                         Color.TRANSPARENT,
+                        Color.WHITE,
                         Shader.TileMode.CLAMP
                     ) else {
                         it.over.top = it.over.bottom - (it.over.bottom - it.over.top) * it.a
@@ -240,26 +246,10 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
         clampScroll()
     }
 
-    private val edgeEffectTop by lazy {
-        EdgeEffect(context).apply {
-            blendMode = BlendMode.SRC_OVER
-        }
-    }
-    private val edgeEffectBottom by lazy {
-        EdgeEffect(context).apply {
-            blendMode = BlendMode.SRC_OVER
-        }
-    }
-    private val edgeEffectLeft by lazy {
-        EdgeEffect(context).apply {
-            blendMode = BlendMode.SRC_OVER
-        }
-    }
-    private val edgeEffectRight by lazy {
-        EdgeEffect(context).apply {
-            blendMode = BlendMode.SRC_OVER
-        }
-    }
+    private val edgeEffectTop by lazy { EdgeEffect(context) }
+    private val edgeEffectBottom by lazy { EdgeEffect(context) }
+    private val edgeEffectLeft by lazy { EdgeEffect(context) }
+    private val edgeEffectRight by lazy { EdgeEffect(context) }
 
     private fun clampScroll() {
         val oldX = scrollX
@@ -277,45 +267,48 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
         setLayerType(LAYER_TYPE_SOFTWARE, null)
     }
 
-    val lock = ReentrantLock()
+    private val lock = ReentrantLock()
+    private var job: Job? = null
     var dirty = false
 
+    @ObsoleteCoroutinesApi
+    private val dispatcher by lazy { newSingleThreadContext("draw") }
+
+    @ObsoleteCoroutinesApi
     @SuppressLint("DrawAllocation")
     override fun onDraw(c: Canvas) {
         c.translate(scrollX.toFloat(), scrollY.toFloat())
         val activity = context as? EditActivity
         val (transX, transY) = getTranslate()
         val scale = scale
-        if (dirty || lastX != transX || lastY != transY || lastScale != scale) {
-            dirty = false
-            val lastDeferred = deferred
-            deferred = GlobalScope.async {
-                lastDeferred?.cancelAndJoin()
-                if (!isActive) return@async
-                val bitmap =
-                    (if (cacheBitmap2?.width == width && cacheBitmap2?.height == height)
-                        cacheBitmap2 else null)
-                        ?: Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-                cacheBitmap2 = bitmap
-                bitmap.eraseColor(Color.TRANSPARENT)
-                bitmap.applyCanvas {
-                    translate(transX, transY)
-                    scale(scale, scale)
-                    drawToCanvas(this)
-                }
-                if (!isActive) return@async
-                lock.withLock {
-                    val cache = cacheBitmap
-                    cacheBitmap = cacheBitmap2
-                    cacheBitmap2 = cache
-                    lastX = transX
-                    lastY = transY
-                    lastScale = scale
-                }
-                postInvalidate()
-            }
-        }
         lock.withLock {
+            if (dirty || lastX != transX || lastY != transY || lastScale != scale) {
+                dirty = false
+                job?.cancel()
+                job = GlobalScope.launch(dispatcher) {
+                    if (!isActive) return@launch
+                    val bitmap =
+                        (if (cacheBitmap2?.width == width && cacheBitmap2?.height == height)
+                            cacheBitmap2 else null)
+                            ?: Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                    cacheBitmap2 = bitmap
+                    bitmap.eraseColor(Color.TRANSPARENT)
+                    bitmap.applyCanvas {
+                        translate(transX, transY)
+                        scale(scale, scale)
+                        drawToCanvas(this)
+                    }
+                    lock.withLock {
+                        val cache = cacheBitmap
+                        cacheBitmap = cacheBitmap2
+                        cacheBitmap2 = cache
+                        lastX = transX
+                        lastY = transY
+                        lastScale = scale
+                    }
+                    postInvalidate()
+                }
+            }
             c.withSave {
                 val diff = scale / lastScale
                 c.translate(transX - lastX * diff, transY - lastY * diff)
