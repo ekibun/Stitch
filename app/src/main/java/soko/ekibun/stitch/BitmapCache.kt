@@ -14,28 +14,27 @@ import java.io.IOException
 
 class BitmapCache(var context: Context) {
 
-    fun shareBitmap(context: Context, bitmap: Bitmap) {
-        try {
-            val fileName = System.currentTimeMillis().toString(16) + ".png"
-            val imageFile = File(cacheDirPath, fileName)
-            imageFile.parentFile?.mkdirs()
-            val stream = imageFile.outputStream()
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
-            stream.close()
-            val contentUri =
-                FileProvider.getUriForFile(context, "soko.ekibun.stitch.fileprovider", imageFile)
+    fun createFileName(): String {
+        return context.getString(R.string.app_name) + System.currentTimeMillis()
+            .toString(16) + ".png"
+    }
 
-            if (contentUri != null) {
-                val shareIntent = Intent()
-                shareIntent.action = Intent.ACTION_SEND
-                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) // temp permission for receiving app to read this file
-                shareIntent.setDataAndType(contentUri, "image/png")
-                shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri)
-                context.startActivity(Intent.createChooser(shareIntent, "Stitch"))
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+    fun saveToCache(bitmap: Bitmap): Intent {
+        val fileName = createFileName()
+        val imageFile = File(cacheDirPath, fileName)
+        imageFile.parentFile?.mkdirs()
+        val stream = imageFile.outputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+        stream.close()
+
+        val contentUri =
+            FileProvider.getUriForFile(context, "soko.ekibun.stitch.fileprovider", imageFile)!!
+        val shareIntent = Intent()
+        shareIntent.action = Intent.ACTION_SEND
+        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) // temp permission for receiving app to read this file
+        shareIntent.setDataAndType(contentUri, "image/png")
+        shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri)
+        return Intent.createChooser(shareIntent, "Stitch")
     }
 
     private val memoryCache: LruCache<String?, Bitmap?> by lazy {

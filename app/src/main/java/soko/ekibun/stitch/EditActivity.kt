@@ -12,6 +12,7 @@ import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
@@ -19,6 +20,7 @@ import android.os.Bundle
 import android.preference.PreferenceManager
 import android.text.Html
 import android.text.method.LinkMovementMethod
+import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.widget.TextView
@@ -29,6 +31,11 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 class EditActivity : Activity() {
+    companion object {
+        const val REQUEST_IMPORT = 1
+        const val REQUEST_SAVE = 2
+    }
+
     private val editView by lazy { findViewById<EditView>(R.id.edit) }
     private val guidanceView by lazy { findViewById<View>(R.id.guidance) }
     private val selectInfo by lazy { findViewById<TextView>(R.id.select_info) }
@@ -151,6 +158,18 @@ class EditActivity : Activity() {
                 windowInsets.systemWindowInsetRight,
                 0
             )
+            guidanceView.setPadding(
+                windowInsets.systemWindowInsetLeft,
+                windowInsets.systemWindowInsetTop,
+                windowInsets.systemWindowInsetRight,
+                0
+            )
+            findViewById<View>(R.id.panel0).setPadding(
+                windowInsets.systemWindowInsetLeft,
+                0,
+                windowInsets.systemWindowInsetRight,
+                0
+            )
             findViewById<View>(R.id.panel1).setPadding(
                 windowInsets.systemWindowInsetLeft,
                 0,
@@ -170,7 +189,7 @@ class EditActivity : Activity() {
             val intent = Intent(Intent.ACTION_GET_CONTENT)
             intent.type = "image/*"
             intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-            startActivityForResult(Intent.createChooser(intent, "Stitch"), 1)
+            startActivityForResult(Intent.createChooser(intent, "Stitch"), REQUEST_IMPORT)
         }
         findViewById<View>(R.id.menu_capture).setOnClickListener {
             this.startActivity(Intent(this, StartCaptureActivity::class.java))
@@ -214,19 +233,44 @@ class EditActivity : Activity() {
                     updateSelectInfo()
                 }.show()
         }
-        findViewById<View>(R.id.menu_save).setOnClickListener {
+        findViewById<View>(R.id.menu_share).setOnClickListener {
             if (App.stitchInfo.isEmpty()) {
                 Toast.makeText(this, R.string.please_add_image, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             val progress = ProgressDialog.show(this, null, getString(R.string.alert_stitching))
-            GlobalScope.launch(Dispatchers.Default) {
-                val bitmap = editView.drawToBitmap()
+            GlobalScope.launch(Dispatchers.IO) {
+                val intent = try {
+                    val bitmap = editView.drawToBitmap()
+                    App.bitmapCache.saveToCache(bitmap)
+                } catch (e: Throwable) {
+                    e
+                }
                 runOnUiThread {
-                    App.bitmapCache.shareBitmap(this@EditActivity, bitmap)
                     progress.cancel()
+                    val ctx = this@EditActivity
+                    if (intent is Intent) {
+                        startActivity(intent)
+                    } else {
+                        AlertDialog.Builder(ctx)
+                            .setTitle(R.string.throw_error)
+                            .setMessage(Log.getStackTraceString(intent as? Throwable))
+                            .setPositiveButton(getString(R.string.alert_ok)) { _, _ -> }
+                            .show()
+                    }
                 }
             }
+        }
+        findViewById<View>(R.id.menu_save).setOnClickListener {
+            if (App.stitchInfo.isEmpty()) {
+                Toast.makeText(this, R.string.please_add_image, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            val saveIntent = Intent(Intent.ACTION_CREATE_DOCUMENT)
+            saveIntent.type = "image/png"
+            saveIntent.addCategory(Intent.CATEGORY_OPENABLE)
+            saveIntent.putExtra(Intent.EXTRA_TITLE, App.bitmapCache.createFileName())
+            startActivityForResult(saveIntent, REQUEST_SAVE)
         }
         findViewById<View>(R.id.menu_auto_stitch).setOnClickListener {
             if (selected.isEmpty()) {
@@ -236,7 +280,7 @@ class EditActivity : Activity() {
             val progress = ProgressDialog(this)
             progress.setMessage(getString(R.string.alert_computing))
             progress.show()
-            GlobalScope.launch(Dispatchers.Default) {
+            GlobalScope.launch(Dispatchers.IO) {
                 App.stitchInfo.reduceOrNull { acc, it ->
                     if (progress.isShowing && selected.contains(it.key)) {
                         val img0 = App.bitmapCache.getBitmap(acc.image)
@@ -278,7 +322,10 @@ class EditActivity : Activity() {
             }
         }
         findViewById<TextView>(R.id.menu_opensource).setOnClickListener {
-            AlertDialog.Builder(this).setMessage(Html.fromHtml(getString(R.string.opensource)))
+            AlertDialog.Builder(this)
+                .setTitle(R.string.menu_opensource)
+                .setMessage(Html.fromHtml(getString(R.string.opensource)))
+                .setPositiveButton(getString(R.string.alert_ok)) { _, _ -> }
                 .show()
         }
         findViewById<TextView>(R.id.menu_support).setOnClickListener {
@@ -303,7 +350,7 @@ class EditActivity : Activity() {
         }
 
         seekDx.type = RangeSeekbar.TYPE_CENTER
-        seekTrim.a = 0.5f
+        seekDx.a = 0.5f
         seekDx.onRangeChange = { a, _ ->
             App.stitchInfo.forEach {
                 if (selected.contains(it.key)) it.dx = ((a * 2 - 1) * it.width).roundToInt()
@@ -311,7 +358,7 @@ class EditActivity : Activity() {
             updateRange()
         }
         seekDy.type = RangeSeekbar.TYPE_CENTER
-        seekTrim.a = 0.5f
+        seekDy.a = 0.5f
         seekDy.onRangeChange = { a, _ ->
             App.stitchInfo.forEach {
                 if (selected.contains(it.key)) it.dy = ((a * 2 - 1) * it.height).roundToInt()
@@ -351,23 +398,62 @@ class EditActivity : Activity() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (resultCode == RESULT_OK) {
-            selected.clear()
-            val progress = ProgressDialog.show(this, null, getString(R.string.alert_reading))
-            GlobalScope.launch(Dispatchers.Default) {
-                val clipData = data?.clipData
-                if (clipData != null) {
-                    val count: Int =
-                        clipData.itemCount
-                    for (i in 0 until count) {
-                        addImage(clipData.getItemAt(i).uri)
+        if (resultCode != RESULT_OK) return
+        when (requestCode) {
+            REQUEST_IMPORT -> {
+                selected.clear()
+                val progress = ProgressDialog.show(
+                    this, null,
+                    getString(R.string.alert_reading)
+                )
+                GlobalScope.launch(Dispatchers.IO) {
+                    val clipData = data?.clipData
+                    if (clipData != null) {
+                        val count: Int =
+                            clipData.itemCount
+                        for (i in 0 until count) {
+                            addImage(clipData.getItemAt(i).uri)
+                        }
+                    } else data?.data?.let { path ->
+                        addImage(path)
                     }
-                } else data?.data?.let { path ->
-                    addImage(path)
+                    runOnUiThread {
+                        progress.cancel()
+                        updateRange()
+                    }
                 }
-                runOnUiThread {
-                    progress.cancel()
-                    updateRange()
+            }
+            REQUEST_SAVE -> {
+                val progress = ProgressDialog.show(
+                    this, null,
+                    getString(R.string.alert_stitching)
+                )
+                GlobalScope.launch(Dispatchers.IO) {
+                    val err = try {
+                        val fileOutputStream = contentResolver.openOutputStream(data?.data!!)!!
+                        val bitmap = editView.drawToBitmap()
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
+                        fileOutputStream.close()
+                    } catch (e: Throwable) {
+                        e
+                    }
+                    runOnUiThread {
+                        progress.cancel()
+                        val ctx = this@EditActivity
+                        if (err !is Throwable) {
+                            Toast.makeText(
+                                ctx,
+                                R.string.save_success,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } else {
+                            AlertDialog.Builder(ctx)
+                                .setTitle(R.string.throw_error)
+                                .setMessage(Log.getStackTraceString(err))
+                                .setPositiveButton(getString(R.string.alert_ok)) { _, _ -> }
+                                .show()
+                        }
+                    }
                 }
             }
         }

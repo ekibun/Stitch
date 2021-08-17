@@ -25,7 +25,10 @@
     <string name="label_trim">裁切位置</string>
     <string name="menu_import">导入</string>
     <string name="menu_capture">截图</string>
-    <string name="menu_save">导出</string>
+    <string name="menu_save">保存</string>
+    <string name="menu_share">分享</string>
+    <string name="save_success">图片保存成功</string>
+    <string name="throw_error">出错啦</string>
 
     <string name="guidance_info">
         &lt;big>&lt;big>&lt;b>Stitch&lt;/b>&lt;/big>&lt;/big>&lt;br/>
