@@ -87,4 +87,6 @@
         Apache License, Version 2.0
     </string>
     <string name="menu_opensource">开源许可协议</string>
+    <string name="label_xrange">横向范围</string>
+    <string name="label_yrange">纵向范围</string>
 </resources>

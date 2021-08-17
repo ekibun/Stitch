@@ -9,6 +9,7 @@ import android.view.*
 import android.widget.EdgeEffect
 import android.widget.OverScroller
 import androidx.core.graphics.applyCanvas
+import androidx.core.graphics.toRectF
 import androidx.core.graphics.withSave
 import kotlinx.coroutines.*
 import java.util.concurrent.locks.ReentrantLock
@@ -62,27 +63,34 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
     private fun drawToCanvas(c: Canvas, drawMask: Boolean = true) {
         val activity = context as? EditActivity
+        val srcRange = Rect()
+        val dstRange = Rect()
         val over = RectF()
         val path = Path()
         for (i in 0 until App.stitchInfo.size) {
             val it = App.stitchInfo.getOrNull(i) ?: continue
-            val x = it.x
-            val y = it.y
-            val width = it.width
-            val height = it.height
+            srcRange.set(
+                (it.width * it.xa).roundToInt(),
+                (it.height * it.ya).roundToInt(),
+                (it.width * it.xb).roundToInt(),
+                (it.height * it.yb).roundToInt()
+            )
+            dstRange.set(
+                it.x + srcRange.left,
+                it.y + srcRange.top,
+                it.x + srcRange.right,
+                it.y + srcRange.bottom
+            )
             over.set(it.over)
 
-            if (x > c.clipBounds.right ||
-                x + width < c.clipBounds.left ||
-                y > c.clipBounds.bottom ||
-                y + height < c.clipBounds.top
+            if (dstRange.left > c.clipBounds.right ||
+                dstRange.right < c.clipBounds.left ||
+                dstRange.top > c.clipBounds.bottom ||
+                dstRange.bottom < c.clipBounds.top
             ) continue
             val bmp = App.bitmapCache.getBitmap(it.image) ?: return
             path.reset()
-            path.addRect(
-                x.toFloat(), y.toFloat(), x.toFloat() + width, y.toFloat() + height,
-                Path.Direction.CW
-            )
+            path.addRect(dstRange.toRectF(), Path.Direction.CW)
             if (over.right > over.left && over.bottom > over.top) {
                 it.shader?.let { shader ->
                     gradientPaint.shader = shader
@@ -98,21 +106,15 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
                 activity.selected.contains(it.key)
             ) {
                 overPaint.color = maskColor
-                c.drawRect(
-                    x.toFloat(),
-                    y.toFloat(),
-                    x.toFloat() + width,
-                    y.toFloat() + height,
-                    overPaint
-                )
+                c.drawRect(dstRange, overPaint)
             }
             overPaint.color = Color.BLACK
-            c.drawBitmap(bmp, x.toFloat(), y.toFloat(), overPaint)
+            c.drawBitmap(bmp, srcRange, dstRange, overPaint)
         }
     }
 
     fun drawToBitmap(): Bitmap {
-        val bitmap = Bitmap.createBitmap(rangeX, rangeY, Bitmap.Config.RGB_565)
+        val bitmap = Bitmap.createBitmap(rangeX, rangeY, Bitmap.Config.ARGB_8888)
         val c = Canvas(bitmap)
         c.translate(-minX.toFloat(), -minY.toFloat())
         runBlocking {
@@ -152,9 +154,9 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
             })
     }
 
-    private var lastX = 0f
-    private var lastY = 0f
-    private var lastScale = 0f
+    private var lastDrawX = 0f
+    private var lastDrawY = 0f
+    private var lastDrawScale = 0f
     private var cacheBitmap: Bitmap? = null
     private var cacheBitmap2: Bitmap? = null
 
@@ -163,27 +165,35 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
         var lastY = 0
         var lastW = 0
         var lastH = 0
-        maxX = 0
-        maxY = 0
-        minX = 0
-        minY = 0
+        val lastRect = Rect()
+        val rect = Rect()
+        maxX = Int.MIN_VALUE
+        maxY = Int.MIN_VALUE
+        minX = Int.MAX_VALUE
+        minY = Int.MAX_VALUE
         App.stitchInfo.forEachIndexed { i, it ->
             it.x = if (i == 0) 0 else lastX + it.dx - (it.width - lastW) / 2
             it.y = if (i == 0) 0 else lastY + it.dy - (it.height - lastH) / 2
-
-            minX = min(minX, it.x)
-            minY = min(minY, it.y)
-            maxX = max(it.x + it.width, maxX)
-            maxY = max(it.y + it.height, maxY)
-
-            it.over.left = max(it.x, lastX).toFloat()
-            it.over.top = max(it.y, lastY).toFloat()
-            it.over.right = min(it.x + it.width, lastX + lastW).toFloat()
-            it.over.bottom = min(it.y + it.height, lastY + lastH).toFloat()
             lastX = it.x
             lastY = it.y
             lastW = it.width
             lastH = it.height
+            rect.set(
+                it.x + (it.width * it.xa).roundToInt(),
+                it.y + (it.height * it.ya).roundToInt(),
+                it.x + (it.width * it.xb).roundToInt(),
+                it.y + (it.height * it.yb).roundToInt()
+            )
+            minX = min(minX, rect.left)
+            minY = min(minY, rect.top)
+            maxX = max(rect.right, maxX)
+            maxY = max(rect.bottom, maxY)
+
+            it.over.left = max(rect.left, lastRect.left).toFloat()
+            it.over.top = max(rect.top, lastRect.top).toFloat()
+            it.over.right = min(rect.right, lastRect.right).toFloat()
+            it.over.bottom = min(rect.bottom, lastRect.bottom).toFloat()
+            lastRect.set(rect)
 
             it.shader = if (abs(it.dx) > abs(it.dy)) {
                 if (it.dx > 0) {
@@ -282,7 +292,7 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
         val (transX, transY) = getTranslate()
         val scale = scale
         lock.withLock {
-            if (dirty || lastX != transX || lastY != transY || lastScale != scale) {
+            if (dirty || lastDrawX != transX || lastDrawY != transY || lastDrawScale != scale) {
                 dirty = false
                 job?.cancel()
                 job = GlobalScope.launch(dispatcher) {
@@ -302,16 +312,16 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
                         val cache = cacheBitmap
                         cacheBitmap = cacheBitmap2
                         cacheBitmap2 = cache
-                        lastX = transX
-                        lastY = transY
-                        lastScale = scale
+                        lastDrawX = transX
+                        lastDrawY = transY
+                        lastDrawScale = scale
                     }
                     postInvalidate()
                 }
             }
             c.withSave {
-                val diff = scale / lastScale
-                c.translate(transX - lastX * diff, transY - lastY * diff)
+                val diff = scale / lastDrawScale
+                c.translate(transX - lastDrawX * diff, transY - lastDrawY * diff)
                 c.scale(diff, diff)
                 cacheBitmap?.let {
                     c.drawBitmap(it, 0f, 0f, null)

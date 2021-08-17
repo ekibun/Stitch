@@ -13,8 +13,16 @@ import kotlin.math.abs
 import kotlin.math.max
 
 class RangeSeekbar(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
-    var a = 0.4f
-    var b = 0.6f
+    var a = 0f
+    var b = 1f
+
+    companion object {
+        const val TYPE_RANGE = 0
+        const val TYPE_GRADIENT = 1
+        const val TYPE_CENTER = 2
+    }
+
+    var type = TYPE_RANGE
 
     @Suppress("DEPRECATION")
     private val colorPrimary by lazy { resources.getColor(R.color.colorPrimary) }
@@ -35,42 +43,82 @@ class RangeSeekbar(context: Context?, attrs: AttributeSet?) : View(context, attr
     override fun onDraw(c: Canvas) {
         val ax = radius + (width - 2 * radius) * a
         val bx = radius + (width - 2 * radius) * b
-        if (ax != bx) {
-            controlPaint.shader =
-                LinearGradient(
-                    ax,
-                    0f,
-                    bx,
-                    0f,
-                    colorOpaque,
-                    colorPrimary,
-                    Shader.TileMode.CLAMP
+        when (type) {
+            TYPE_GRADIENT -> {
+                if (ax != bx) {
+                    controlPaint.shader =
+                        LinearGradient(
+                            ax,
+                            0f,
+                            bx,
+                            0f,
+                            colorOpaque,
+                            colorPrimary,
+                            Shader.TileMode.CLAMP
+                        )
+                    c.drawRect(
+                        radius,
+                        height / 2f - thick,
+                        width.toFloat() - radius,
+                        height / 2f + thick,
+                        controlPaint
+                    )
+                    controlPaint.shader = null
+                } else {
+                    controlPaint.color = colorOpaque
+                    c.drawRect(
+                        radius,
+                        height / 2f - thick,
+                        width.toFloat() - radius,
+                        height / 2f + thick,
+                        controlPaint
+                    )
+                    controlPaint.color = colorPrimary
+                    c.drawRect(
+                        bx,
+                        height / 2f - thick,
+                        width.toFloat() - radius,
+                        height / 2f + thick,
+                        controlPaint
+                    )
+                }
+            }
+            TYPE_RANGE -> {
+                controlPaint.color = colorOpaque
+                c.drawRect(
+                    radius,
+                    height / 2f - thick,
+                    width.toFloat() - radius,
+                    height / 2f + thick,
+                    controlPaint
                 )
-            c.drawRect(
-                radius,
-                height / 2f - thick,
-                width.toFloat() - radius,
-                height / 2f + thick,
-                controlPaint
-            )
-            controlPaint.shader = null
-        } else {
-            controlPaint.color = colorOpaque
-            c.drawRect(
-                radius,
-                height / 2f - thick,
-                width.toFloat() - radius,
-                height / 2f + thick,
-                controlPaint
-            )
-            controlPaint.color = colorPrimary
-            c.drawRect(
-                bx,
-                height / 2f - thick,
-                width.toFloat() - radius,
-                height / 2f + thick,
-                controlPaint
-            )
+                controlPaint.color = colorPrimary
+                c.drawRect(
+                    ax,
+                    height / 2f - thick,
+                    bx,
+                    height / 2f + thick,
+                    controlPaint
+                )
+            }
+            TYPE_CENTER -> {
+                controlPaint.color = colorOpaque
+                c.drawRect(
+                    radius,
+                    height / 2f - thick,
+                    width.toFloat() - radius,
+                    height / 2f + thick,
+                    controlPaint
+                )
+                controlPaint.color = colorPrimary
+                c.drawRect(
+                    width / 2f,
+                    height / 2f - thick,
+                    ax,
+                    height / 2f + thick,
+                    controlPaint
+                )
+            }
         }
         controlPaint.color = colorPrimary
         c.drawOval(
@@ -80,7 +128,7 @@ class RangeSeekbar(context: Context?, attrs: AttributeSet?) : View(context, attr
             height / 2f + radius,
             controlPaint
         )
-        c.drawOval(
+        if (type != TYPE_CENTER) c.drawOval(
             bx - radius,
             height / 2f - radius,
             bx + radius,
@@ -93,6 +141,7 @@ class RangeSeekbar(context: Context?, attrs: AttributeSet?) : View(context, attr
 
     private var downX = 0f
     private var downY = 0f
+    private var dragging = false
     private var downObj = 0
 
     @SuppressLint("ClickableViewAccessibility")
@@ -100,31 +149,40 @@ class RangeSeekbar(context: Context?, attrs: AttributeSet?) : View(context, attr
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
                 parent.requestDisallowInterceptTouchEvent(true)
+                dragging = false
                 downX = event.x
                 downY = event.y
                 val ar = abs(downX - radius - (width - 2 * radius) * a)
                 val br = abs(downX - radius - (width - 2 * radius) * b)
                 downObj = when {
-                    ar <= br && ar < 2 * radius -> 1
-                    ar >= br && br < 2 * radius -> 2
+                    (type == TYPE_CENTER || ar <= br) && ar < 2 * radius -> 1
+                    type != TYPE_CENTER && ar >= br && br < 2 * radius -> 2
                     else -> 0
                 }
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 downObj = 0
+                dragging = false
             }
             MotionEvent.ACTION_MOVE -> {
-                val newValue = ((event.x - radius) / max(1f, (width - 2 * radius)))
-                    .coerceIn(0f, 1f)
-                when (downObj) {
-                    1 -> {
-                        a = newValue
-                        b = max(a, b)
-                    }
-                    2 -> b = max(a, newValue)
+                if (abs(downX - event.x) > 10 || abs(downY - event.y) > 10) {
+                    dragging = true
                 }
-                onRangeChange?.invoke(a, b)
-                invalidate()
+                if (dragging) {
+                    val newValue = ((event.x - radius) / max(1f, (width - 2 * radius)))
+                        .coerceIn(0f, 1f)
+                    when (downObj) {
+                        1 -> {
+                            a = newValue
+                            if (type == TYPE_CENTER) {
+                                if (abs(a - 0.5) < 0.03) a = 0.5f
+                            } else b = max(a, b)
+                        }
+                        2 -> b = max(a, newValue)
+                    }
+                    onRangeChange?.invoke(a, b)
+                    invalidate()
+                }
             }
         }
         return downObj > 0

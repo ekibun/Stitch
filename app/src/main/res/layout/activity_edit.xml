@@ -101,7 +101,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:elevation="10dp"
-        android:background="@color/colorBackgroundFloating"
+        android:background="?android:colorBackground"
         android:orientation="vertical">
 
         <LinearLayout
@@ -114,6 +114,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:background="@color/opaque"
                 android:padding="8dp">
 
                 <TextView
@@ -170,70 +171,105 @@
                     android:textColor="@color/colorPrimary" />
             </LinearLayout>
 
-            <LinearLayout
+            <ScrollView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:baselineAligned="false"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:paddingHorizontal="16dp">
+                android:layout_height="120dp">
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:baselineAligned="false"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp">
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:padding="8dp"
-                        android:text="@string/label_dx" />
+                        android:orientation="vertical">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:padding="8dp"
-                        android:text="@string/label_dy" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:padding="8dp"
+                            android:text="@string/label_dx" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:layout_marginBottom="4dp"
-                        android:padding="8dp"
-                        android:text="@string/label_trim" />
-                </LinearLayout>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:padding="8dp"
+                            android:text="@string/label_dy" />
 
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:padding="8dp"
+                            android:text="@string/label_trim" />
 
-                    <soko.ekibun.stitch.CenterSeekbar
-                        android:id="@+id/seek_x"
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:padding="8dp"
+                            android:text="@string/label_xrange" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginBottom="4dp"
+                            android:padding="8dp"
+                            android:text="@string/label_yrange" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
                         android:layout_weight="1"
-                        tools:ignore="NestedWeights" />
+                        android:orientation="vertical">
 
-                    <soko.ekibun.stitch.CenterSeekbar
-                        android:id="@+id/seek_y"
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1" />
+                        <soko.ekibun.stitch.RangeSeekbar
+                            android:id="@+id/seek_x"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            tools:ignore="NestedWeights" />
 
-                    <soko.ekibun.stitch.RangeSeekbar
-                        android:id="@+id/seek_trim"
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1"
-                        android:max="20"
-                        android:progress="10" />
+                        <soko.ekibun.stitch.RangeSeekbar
+                            android:id="@+id/seek_y"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1" />
+
+                        <soko.ekibun.stitch.RangeSeekbar
+                            android:id="@+id/seek_trim"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:max="20"
+                            android:progress="10" />
+
+                        <soko.ekibun.stitch.RangeSeekbar
+                            android:id="@+id/seek_xrange"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:max="20"
+                            android:progress="10" />
+
+                        <soko.ekibun.stitch.RangeSeekbar
+                            android:id="@+id/seek_yrange"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:max="20"
+                            android:progress="10" />
+                    </LinearLayout>
                 </LinearLayout>
-            </LinearLayout>
+            </ScrollView>
         </LinearLayout>
 
         <LinearLayout

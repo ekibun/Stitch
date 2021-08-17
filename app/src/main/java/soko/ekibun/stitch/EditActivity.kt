@@ -32,9 +32,11 @@ class EditActivity : Activity() {
     private val editView by lazy { findViewById<EditView>(R.id.edit) }
     private val guidanceView by lazy { findViewById<View>(R.id.guidance) }
     private val selectInfo by lazy { findViewById<TextView>(R.id.select_info) }
-    private val seekDx by lazy { findViewById<CenterSeekbar>(R.id.seek_x) }
-    private val seekDy by lazy { findViewById<CenterSeekbar>(R.id.seek_y) }
+    private val seekDx by lazy { findViewById<RangeSeekbar>(R.id.seek_x) }
+    private val seekDy by lazy { findViewById<RangeSeekbar>(R.id.seek_y) }
     private val seekTrim by lazy { findViewById<RangeSeekbar>(R.id.seek_trim) }
+    private val seekXRange by lazy { findViewById<RangeSeekbar>(R.id.seek_xrange) }
+    private val seekYRange by lazy { findViewById<RangeSeekbar>(R.id.seek_yrange) }
 
     val selected by lazy {
         mutableSetOf<Int>()
@@ -47,13 +49,19 @@ class EditActivity : Activity() {
         editView.invalidate()
         val selected = App.stitchInfo.filterIndexed { i, it -> i > 0 && selected.contains(it.key) }
         if (selected.isNotEmpty()) {
-            seekDx.a = selected.map { it.dx.toFloat() / it.width }.average().toFloat()
-            seekDy.a = selected.map { it.dy.toFloat() / it.height }.average().toFloat()
+            seekDx.a = selected.map { (it.dx.toFloat() / it.width + 1) / 2 }.average().toFloat()
+            seekDy.a = selected.map { (it.dy.toFloat() / it.height + 1) / 2 }.average().toFloat()
             seekTrim.a = selected.map { it.a }.average().toFloat()
             seekTrim.b = selected.map { it.b }.average().toFloat()
+            seekXRange.a = selected.map { it.xa }.average().toFloat()
+            seekXRange.b = selected.map { it.xb }.average().toFloat()
+            seekYRange.a = selected.map { it.ya }.average().toFloat()
+            seekYRange.b = selected.map { it.yb }.average().toFloat()
             seekDx.invalidate()
             seekDy.invalidate()
             seekTrim.invalidate()
+            seekXRange.invalidate()
+            seekYRange.invalidate()
         }
     }
 
@@ -215,8 +223,8 @@ class EditActivity : Activity() {
             GlobalScope.launch(Dispatchers.Default) {
                 val bitmap = editView.drawToBitmap()
                 runOnUiThread {
-                    progress.cancel()
                     App.bitmapCache.shareBitmap(this@EditActivity, bitmap)
+                    progress.cancel()
                 }
             }
         }
@@ -294,23 +302,48 @@ class EditActivity : Activity() {
             }
         }
 
-        seekDx.onRangeChange = { a ->
+        seekDx.type = RangeSeekbar.TYPE_CENTER
+        seekTrim.a = 0.5f
+        seekDx.onRangeChange = { a, _ ->
             App.stitchInfo.forEach {
-                if (selected.contains(it.key)) it.dx = (a * it.width).roundToInt()
+                if (selected.contains(it.key)) it.dx = ((a * 2 - 1) * it.width).roundToInt()
             }
             updateRange()
         }
-        seekDy.onRangeChange = { a ->
+        seekDy.type = RangeSeekbar.TYPE_CENTER
+        seekTrim.a = 0.5f
+        seekDy.onRangeChange = { a, _ ->
             App.stitchInfo.forEach {
-                if (selected.contains(it.key)) it.dy = (a * it.height).roundToInt()
+                if (selected.contains(it.key)) it.dy = ((a * 2 - 1) * it.height).roundToInt()
             }
             updateRange()
         }
+        seekTrim.type = RangeSeekbar.TYPE_GRADIENT
+        seekTrim.a = 0.4f
+        seekTrim.b = 0.6f
         seekTrim.onRangeChange = { a, b ->
             App.stitchInfo.forEach {
                 if (selected.contains(it.key)) {
                     it.a = a
                     it.b = b
+                }
+            }
+            updateRange()
+        }
+        seekXRange.onRangeChange = { a, b ->
+            App.stitchInfo.forEach {
+                if (selected.contains(it.key)) {
+                    it.xa = a
+                    it.xb = b
+                }
+            }
+            updateRange()
+        }
+        seekYRange.onRangeChange = { a, b ->
+            App.stitchInfo.forEach {
+                if (selected.contains(it.key)) {
+                    it.ya = a
+                    it.yb = b
                 }
             }
             updateRange()
