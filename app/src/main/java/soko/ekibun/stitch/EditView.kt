@@ -526,17 +526,15 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
                     val (transX, transY) = getTranslate()
                     val x = ((event.getX(index) - transX) / scale - downOffsetX).roundToInt()
                     val y = ((event.getY(index) - transY) / scale - downOffsetY).roundToInt()
-                    val prev = App.stitchInfo.getOrNull(App.stitchInfo.indexOfFirst {
-                        it.key == touching.key
-                    } - 1)
-                    if (prev != null) {
+                    if (abs(initialTouchX - event.x) > 10 || abs(initialTouchY - event.y) > 10) {
+                        if (!dragging) App.updateUndo()
+                        dragging = true
+                    }
+                    if (dragging) {
                         touching.dx = touching.dx - touching.x + x
                         touching.dy = touching.dy - touching.y + y
                         touching.x = x
                         touching.y = y
-                        if (abs(initialTouchX - event.x) > 10 || abs(initialTouchY - event.y) > 10) {
-                            dragging = true
-                        }
                         (context as? EditActivity)?.updateRange()
                     }
                 } else {

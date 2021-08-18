@@ -141,7 +141,6 @@ class RangeSeekbar(context: Context?, attrs: AttributeSet?) : View(context, attr
 
     private var downX = 0f
     private var downY = 0f
-    private var dragging = false
     private var downObj = 0
 
     @SuppressLint("ClickableViewAccessibility")
@@ -149,7 +148,6 @@ class RangeSeekbar(context: Context?, attrs: AttributeSet?) : View(context, attr
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
                 parent.requestDisallowInterceptTouchEvent(true)
-                dragging = false
                 downX = event.x
                 downY = event.y
                 val ar = abs(downX - radius - (width - 2 * radius) * a)
@@ -159,30 +157,25 @@ class RangeSeekbar(context: Context?, attrs: AttributeSet?) : View(context, attr
                     type != TYPE_CENTER && ar >= br && br < 2 * radius -> 2
                     else -> 0
                 }
+                if (downObj != 0) App.updateUndo()
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 downObj = 0
-                dragging = false
             }
             MotionEvent.ACTION_MOVE -> {
-                if (abs(downX - event.x) > 10 || abs(downY - event.y) > 10) {
-                    dragging = true
-                }
-                if (dragging) {
-                    val newValue = ((event.x - radius) / max(1f, (width - 2 * radius)))
-                        .coerceIn(0f, 1f)
-                    when (downObj) {
-                        1 -> {
-                            a = newValue
-                            if (type == TYPE_CENTER) {
-                                if (abs(a - 0.5) < 0.03) a = 0.5f
-                            } else b = max(a, b)
-                        }
-                        2 -> b = max(a, newValue)
+                val newValue = ((event.x - radius) / max(1f, (width - 2 * radius)))
+                    .coerceIn(0f, 1f)
+                when (downObj) {
+                    1 -> {
+                        a = newValue
+                        if (type == TYPE_CENTER) {
+                            if (abs(a - 0.5) < 0.03) a = 0.5f
+                        } else b = max(a, b)
                     }
-                    onRangeChange?.invoke(a, b)
-                    invalidate()
+                    2 -> b = max(a, newValue)
                 }
+                onRangeChange?.invoke(a, b)
+                invalidate()
             }
         }
         return downObj > 0

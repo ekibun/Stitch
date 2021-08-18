@@ -185,6 +185,11 @@ class EditActivity : Activity() {
             windowInsets.consumeSystemWindowInsets()
         }
 
+        findViewById<View>(R.id.menu_undo).setOnClickListener {
+            App.undo()
+            selected.clear()
+            updateRange()
+        }
         findViewById<View>(R.id.menu_import).setOnClickListener {
             val intent = Intent(Intent.ACTION_GET_CONTENT)
             intent.type = "image/*"
@@ -205,6 +210,7 @@ class EditActivity : Activity() {
                 Toast.makeText(this, R.string.please_select_swap, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+            App.updateUndo()
             val (i, j) = selected.map { App.stitchInfo.indexOfFirst { info -> info.key == it } }
                 .sorted()
             if (i < 0 || j < 0) return@setOnClickListener
@@ -227,6 +233,7 @@ class EditActivity : Activity() {
             AlertDialog.Builder(this)
                 .setMessage(getString(R.string.alert_delete, selected.size))
                 .setPositiveButton(getString(R.string.alert_ok)) { _: DialogInterface, _: Int ->
+                    App.updateUndo()
                     App.stitchInfo.removeAll { selected.contains(it.key) }
                     selected.clear()
                     updateRange()
@@ -281,6 +288,7 @@ class EditActivity : Activity() {
             progress.setMessage(getString(R.string.alert_computing))
             progress.show()
             GlobalScope.launch(Dispatchers.IO) {
+                App.updateUndo()
                 App.stitchInfo.reduceOrNull { acc, it ->
                     if (progress.isShowing && selected.contains(it.key)) {
                         val img0 = App.bitmapCache.getBitmap(acc.image)
@@ -395,12 +403,14 @@ class EditActivity : Activity() {
             }
             updateRange()
         }
+        selectAll()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (resultCode != RESULT_OK) return
         when (requestCode) {
             REQUEST_IMPORT -> {
+                App.updateUndo()
                 selected.clear()
                 val progress = ProgressDialog.show(
                     this, null,
@@ -466,7 +476,6 @@ class EditActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
-        if (selected.isEmpty()) selectAll()
         updateRange()
         updateSystemUI()
     }

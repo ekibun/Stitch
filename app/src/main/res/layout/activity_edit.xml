@@ -138,6 +138,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginVertical="8dp"
                 android:layout_weight="1"
+                android:maxLines="1"
                 android:padding="8dp"
                 tools:text="已选中 8/10" />
 
@@ -280,6 +281,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/opaque"
+            android:gravity="center"
             android:orientation="horizontal">
 
             <TextView
@@ -301,6 +303,21 @@
                 android:padding="8dp"
                 android:layout_marginVertical="8dp"
                 android:text="@string/menu_capture"
+                android:textColor="?android:attr/textColorPrimary" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="16dp"
+                android:background="@color/opaque" />
+
+            <TextView
+                android:id="@+id/menu_undo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="8dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:text="@string/menu_undo"
                 android:textColor="?android:attr/textColorPrimary" />
 
             <View

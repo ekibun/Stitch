@@ -31,6 +31,7 @@ class StartCaptureActivity : Activity() {
         if (requestCode == REQUEST_CAPTURE) {
             if (resultCode == RESULT_OK) {
                 // 获得权限，启动Service开始录制
+                App.updateUndo()
                 val service = Intent(this, CaptureService::class.java)
                 service.putExtra("captureData", data)
                 startService(service)
