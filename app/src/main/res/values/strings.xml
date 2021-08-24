@@ -11,8 +11,9 @@
     <string name="notify_text">点按通知以取消 / 共 %d 张图片</string>
     <string name="alert_delete">确认删除 %d 张图片？</string>
     <string name="alert_stitching">拼接中…</string>
-    <string name="alert_computing">计算中…</string>
+    <string name="alert_computing">计算中（%d/%d）…</string>
     <string name="alert_reading">读取中…</string>
+    <string name="alert_cancel">取消</string>
     <string name="alert_ok">确认</string>
 
     <string name="menu_select_all">全选</string>
@@ -38,7 +39,7 @@
         1. 点击导入/截图添加图片&lt;br/>
         2. 截图模式下，点击悬浮按钮添加屏幕截图，长按按钮打开编辑窗口&lt;br/>
         3. 点击圆圈选择图片修改拼接参数，或拖动圆圈移动位置&lt;br/>
-        4. 自动拼接采用opencv计算，可以用于拼接地图，请保持足够的重合区域&lt;br/>
+        4. 自动拼接采用OpenCV计算，可以用于拼接地图，请保持足够的重合区域&lt;br/>
         5. 拼接数据将在软件重启或点击快捷按钮后清除，编辑完成后请尽快导出&lt;br/>
         Enjoy~
     </string>
@@ -48,45 +49,52 @@
     <string name="open_error">无法打开浏览器</string>
     <string name="menu_swap">换序</string>
 
-    <string name="policy_version">v1</string>
+    <string name="policy_version">v2</string>
     <string name="policy">
 欢迎使用Stitch截图拼接小工具。&lt;br />
+在软件使用的过程中，Stitch需要获取您的如下权限：&lt;br />
+&lt;ol>
+    &lt;li>&lt;b>截取屏幕内容&lt;/b>&lt;br />
+当您使用“截图”功能时，将会申请此权限获取屏幕截图；&lt;/li>
+    &lt;li>&lt;b>显示在其他应用上层&lt;/b>&lt;br />
+当您使用“截图”功能时，将会申请此权限用于提供悬浮按钮进行屏幕截取操作；&lt;/li>
+    &lt;li>&lt;b>展开/收起系统状态&lt;/b>栏&lt;br />
+当您点击QuickTile按钮，将会使用该权限收起系统状态栏；&lt;/li>
+&lt;/ol>
+请您在使用Stitch前仔细阅读&lt;a href="https://ekibun.github.io/Stitch/v2/privacy">《用户协议与隐私政策》&lt;/a>。&lt;br />
 &lt;br />
-在您使用本产品前，请仔细阅读&lt;a href="https://ekibun.github.io/Stitch/v1/terms">《用户协议》&lt;/a>和&lt;a href="https://ekibun.github.io/Stitch/v1/privacy">《隐私政策》&lt;/a>。&lt;br />
-&lt;br />
-您点击“接受”即表示您已阅读并同意上述条款。我们会遵循隐私政策获取和使用您设备的权限，不会在功能服务不需要时通过您授权的权限收集信息，也不会存储和上传任何用户信息。&lt;br />
+您点击“接受”即表示您已阅读并同意上述条款。我们会遵循隐私政策获取和使用您设备的权限，不会在功能服务不需要时通过您授权的权限收集和存储任何信息。&lt;br />
     </string>
     <string name="policy_accept">接受</string>
     <string name="policy_dismiss">不接受</string>
-    <string name="menu_terms">用户协议</string>
-    <string name="menu_privacy">隐私政策</string>
+    <string name="menu_privacy">用户协议与隐私政策</string>
     <string name="opensource">
         &lt;b>Kotlin Stdlib&lt;/b>&lt;br/>
-        Kotlin Standard Library for JVM&lt;br/>
+        &lt;i>Kotlin Standard Library for JVM&lt;/i>&lt;br/>
         Apache License, Version 2.0&lt;br/>
         &lt;br/>
         &lt;b>Core Kotlin Extensions&lt;/b>&lt;br/>
-        Kotlin extensions for &#180;core&#180; artifact&lt;br/>
+        &lt;i>Kotlin extensions for &#180;core&#180; artifact&lt;/i>&lt;br/>
         Apache License, Version 2.0&lt;br/>
         &lt;br/>
         &lt;b>Android AppCompat Library&lt;/b>&lt;br/>
-        The Support Library is a static library that you can add to your Android application in order to use APIs that are either not available for older platform versions or utility APIs that aren&#180;t a part of the framework APIs. Compatible on devices running API 14 or later.&lt;br/>
+        &lt;i>The Support Library is a static library that you can add to your Android application in order to use APIs that are either not available for older platform versions or utility APIs that aren&#180;t a part of the framework APIs. Compatible on devices running API 14 or later.&lt;/i>&lt;br/>
         Apache License, Version 2.0&lt;br/>
         &lt;br/>
         &lt;b>Material Components For Android&lt;/b>&lt;br/>
-        Material Components for Android is a static library that you can add to your Android application in order to use APIs that provide implementations of the Material Design specification. Compatible on devices running API 14 or later.&lt;br/>
+        &lt;i>Material Components for Android is a static library that you can add to your Android application in order to use APIs that provide implementations of the Material Design specification. Compatible on devices running API 14 or later.&lt;/i>&lt;br/>
         Apache License, Version 2.0&lt;br/>
         &lt;br/>
         &lt;b>Kotlinx Coroutines Core&lt;/b>&lt;br/>
-        Coroutines support libraries for Kotlin&lt;br/>
+        &lt;i>Coroutines support libraries for Kotlin&lt;/i>&lt;br/>
         Apache License, Version 2.0&lt;br/>
         &lt;br/>
         &lt;b>Kotlinx Coroutines Android&lt;/b>&lt;br/>
-        Coroutines support libraries for Kotlin&lt;br/>
+        &lt;i>Coroutines support libraries for Kotlin&lt;/i>&lt;br/>
         Apache License, Version 2.0&lt;br/>
         &lt;br/>
         &lt;b>OpenCV&lt;/b>&lt;br/>
-        Open Source Computer Vision Library&lt;br/>
+        &lt;i>Open Source Computer Vision Library&lt;/i>&lt;br/>
         Apache License, Version 2.0
     </string>
     <string name="menu_opensource">开源许可协议</string>

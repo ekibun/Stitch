@@ -1,6 +1,6 @@
 <resources>
 
-    <style name="Theme.Stitch" parent="android:Theme.DeviceDefault.DayNight">
+    <style name="Theme" parent="android:Theme.DeviceDefault.DayNight">
         <item name="android:colorPrimary">@color/colorPrimary</item>
         <item name="android:colorPrimaryDark">@color/colorPrimary</item>
         <item name="android:colorAccent">@color/colorPrimary</item>
@@ -9,6 +9,8 @@
         <item name="android:navigationBarColor">?android:colorBackground</item>
         <item name="android:statusBarColor">?android:colorBackground</item>
     </style>
+
+    <style name="Theme.Stitch" />
 
     <style name="Theme.Stitch.Dialog">
         <item name="android:windowIsFloating">true</item>

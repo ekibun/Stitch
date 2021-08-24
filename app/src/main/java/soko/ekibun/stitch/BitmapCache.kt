@@ -4,10 +4,11 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.os.Environment
 import android.util.LruCache
 import androidx.core.content.FileProvider
-import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -31,7 +32,7 @@ class BitmapCache(var context: Context) {
             FileProvider.getUriForFile(context, "soko.ekibun.stitch.fileprovider", imageFile)!!
         val shareIntent = Intent()
         shareIntent.action = Intent.ACTION_SEND
-        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) // temp permission for receiving app to read this file
+        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         shareIntent.setDataAndType(contentUri, "image/png")
         shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri)
         return Intent.createChooser(shareIntent, "Stitch")
@@ -42,11 +43,7 @@ class BitmapCache(var context: Context) {
         LruCache(maxMemory / 8)
     }
     private val cacheDirPath: String by lazy {
-        if (Environment.MEDIA_MOUNTED == Environment.getExternalStorageState() || !Environment.isExternalStorageRemovable()) {
-            context.externalCacheDir!!.path
-        } else {
-            context.cacheDir.path
-        } + File.separator + "Bitmap"
+        context.cacheDir.path + File.separator + "Bitmap"
     }
 
     fun clear() {
@@ -67,8 +64,6 @@ class BitmapCache(var context: Context) {
         return null
     }
 
-    private val defers = hashMapOf<String, Deferred<Bitmap?>>()
-
     fun getBitmap(key: String): Bitmap? {
         val bitmap = memoryCache[key]
         if (bitmap != null) return bitmap
@@ -77,22 +72,23 @@ class BitmapCache(var context: Context) {
         return bmp
     }
 
-    fun saveBitmap(bmp: Bitmap, saveToMemory: Boolean = true): String? {
-        try {
-            val key = System.currentTimeMillis().toString(16)
-            if (saveToMemory) addBitmapToMemoryCache(key, bmp)
-            val fileFolder = File(cacheDirPath)
-            if (!fileFolder.exists()) fileFolder.mkdirs()
-            val file = File(cacheDirPath, key)
-            if (!file.exists()) file.createNewFile()
-            val out = FileOutputStream(file)
-            bmp.compress(Bitmap.CompressFormat.PNG, 100, out)
-            out.flush()
-            out.close()
-            return key
-        } catch (e: IOException) {
-            e.printStackTrace()
+    fun saveBitmap(bmp: Bitmap, saveToMemory: Boolean = true): String {
+        val key = System.currentTimeMillis().toString(16)
+        GlobalScope.launch(Dispatchers.IO) {
+            try {
+                if (saveToMemory) addBitmapToMemoryCache(key, bmp)
+                val fileFolder = File(cacheDirPath)
+                if (!fileFolder.exists()) fileFolder.mkdirs()
+                val file = File(cacheDirPath, key)
+                if (!file.exists()) file.createNewFile()
+                val out = FileOutputStream(file)
+                bmp.compress(Bitmap.CompressFormat.PNG, 100, out)
+                out.flush()
+                out.close()
+            } catch (e: Throwable) {
+                e.printStackTrace()
+            }
         }
-        return null
+        return key
     }
 }

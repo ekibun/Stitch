@@ -4,9 +4,6 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 
 class CaptureService : Service() {
     private var screenCapture: ScreenCapture? = null
@@ -17,16 +14,10 @@ class CaptureService : Service() {
 
     fun capture() {
         val bmp = screenCapture?.capture()!!
-
-        computing++
-        GlobalScope.launch(Dispatchers.IO) {
-            App.bitmapCache.saveBitmap(bmp)?.let { key ->
-                val info = Stitch.StitchInfo(key, bmp.width, bmp.height)
-                App.stitchInfo.add(info)
-                notification.updateText()
-            }
-            computing--
-        }
+        val key = App.bitmapCache.saveBitmap(bmp)
+        val info = Stitch.StitchInfo(key, bmp.width, bmp.height)
+        App.stitchInfo.add(info)
+        notification.updateText()
     }
 
     fun longClick() {

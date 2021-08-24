@@ -22,7 +22,6 @@ import android.text.Html
 import android.text.method.LinkMovementMethod
 import android.util.Log
 import android.view.View
-import android.view.WindowManager
 import android.widget.TextView
 import android.widget.Toast
 import kotlinx.coroutines.Dispatchers
@@ -107,7 +106,7 @@ class EditActivity : Activity() {
     private fun addImage(uri: Uri) {
         try {
             val bitmap = BitmapFactory.decodeStream(contentResolver.openInputStream(uri))
-            val key = App.bitmapCache.saveBitmap(bitmap) ?: return
+            val key = App.bitmapCache.saveBitmap(bitmap)
             val info = Stitch.StitchInfo(key, bitmap.width, bitmap.height)
             App.stitchInfo.add(info)
             selected.add(info.key)
@@ -117,8 +116,6 @@ class EditActivity : Activity() {
     }
 
     private fun updateSystemUI() {
-        if (Build.VERSION.SDK_INT >= 28) window.attributes.layoutInDisplayCutoutMode =
-            WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
                 (if (Build.VERSION.SDK_INT >= 26) View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION else 0)
         if (Build.VERSION.SDK_INT < 26) return
@@ -138,7 +135,7 @@ class EditActivity : Activity() {
         if (sp.getString("policy_version", "") != policyVersion) {
             val policyView = TextView(this)
             policyView.text = Html.fromHtml(getString(R.string.policy))
-            val padding = (resources.displayMetrics.density * 16).roundToInt()
+            val padding = (resources.displayMetrics.density * 24).roundToInt()
             policyView.setPaddingRelative(padding, padding, padding, 0)
             policyView.movementMethod = LinkMovementMethod.getInstance()
             AlertDialog.Builder(this).setCancelable(false).setView(policyView)
@@ -212,7 +209,6 @@ class EditActivity : Activity() {
             }
             App.updateUndo()
             val (i, j) = selected.map { App.stitchInfo.indexOfFirst { info -> info.key == it } }
-                .sorted()
             if (i < 0 || j < 0) return@setOnClickListener
             val a = App.stitchInfo[i]
             val b = App.stitchInfo.set(j, a)
@@ -232,7 +228,8 @@ class EditActivity : Activity() {
             }
             AlertDialog.Builder(this)
                 .setMessage(getString(R.string.alert_delete, selected.size))
-                .setPositiveButton(getString(R.string.alert_ok)) { _: DialogInterface, _: Int ->
+                .setNegativeButton(R.string.alert_cancel) { _, _ -> }
+                .setPositiveButton(R.string.alert_ok) { _: DialogInterface, _: Int ->
                     App.updateUndo()
                     App.stitchInfo.removeAll { selected.contains(it.key) }
                     selected.clear()
@@ -262,7 +259,7 @@ class EditActivity : Activity() {
                         AlertDialog.Builder(ctx)
                             .setTitle(R.string.throw_error)
                             .setMessage(Log.getStackTraceString(intent as? Throwable))
-                            .setPositiveButton(getString(R.string.alert_ok)) { _, _ -> }
+                            .setPositiveButton(R.string.alert_ok) { _, _ -> }
                             .show()
                     }
                 }
@@ -285,20 +282,28 @@ class EditActivity : Activity() {
                 return@setOnClickListener
             }
             val progress = ProgressDialog(this)
-            progress.setMessage(getString(R.string.alert_computing))
+            var done = 0
+            progress.setMessage(getString(R.string.alert_computing, done, selected.size))
             progress.show()
             GlobalScope.launch(Dispatchers.IO) {
                 App.updateUndo()
                 App.stitchInfo.reduceOrNull { acc, it ->
                     if (progress.isShowing && selected.contains(it.key)) {
-                        val img0 = App.bitmapCache.getBitmap(acc.image)
-                        val img1 = App.bitmapCache.getBitmap(it.image)
-                        if (img0 != null && img1 != null) {
-                            val data = DoubleArray(9)
-                            if (Stitch.combineNative(img0, img1, data) && progress.isShowing) {
-                                it.dx = data[2].roundToInt()
-                                it.dy = data[5].roundToInt()
+                        Stitch.combine(acc, it)?.let { data ->
+                            if (progress.isShowing) {
+                                it.dx = data.dx
+                                it.dy = data.dy
                             }
+                        }
+                        ++done
+                        runOnUiThread {
+                            progress.setMessage(
+                                getString(
+                                    R.string.alert_computing,
+                                    done,
+                                    selected.size
+                                )
+                            )
                         }
                     }
                     it
@@ -311,15 +316,6 @@ class EditActivity : Activity() {
         }
         val str = getString(R.string.guidance_info, getVersion(this))
         findViewById<TextView>(R.id.guidance_info).text = Html.fromHtml(str)
-        findViewById<TextView>(R.id.menu_terms).setOnClickListener {
-            try {
-                val intent = Intent(Intent.ACTION_VIEW)
-                intent.data = Uri.parse("https://ekibun.github.io/Stitch/$policyVersion/terms")
-                startActivity(intent)
-            } catch (e: Exception) {
-                Toast.makeText(this, R.string.open_error, Toast.LENGTH_SHORT).show()
-            }
-        }
         findViewById<TextView>(R.id.menu_privacy).setOnClickListener {
             try {
                 val intent = Intent(Intent.ACTION_VIEW)
@@ -330,9 +326,14 @@ class EditActivity : Activity() {
             }
         }
         findViewById<TextView>(R.id.menu_opensource).setOnClickListener {
+            val opensourceView = TextView(this)
+            opensourceView.text = Html.fromHtml(getString(R.string.opensource))
+            val padding = (resources.displayMetrics.density * 24).roundToInt()
+            opensourceView.setPaddingRelative(padding, padding, padding, 0)
+            opensourceView.movementMethod = LinkMovementMethod.getInstance()
             AlertDialog.Builder(this)
                 .setTitle(R.string.menu_opensource)
-                .setMessage(Html.fromHtml(getString(R.string.opensource)))
+                .setView(opensourceView)
                 .setPositiveButton(getString(R.string.alert_ok)) { _, _ -> }
                 .show()
         }

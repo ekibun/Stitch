@@ -144,7 +144,7 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
                 override fun onScale(detector: ScaleGestureDetector): Boolean {
                     val oldScale = scale
-                    scale = 0.6f.coerceAtLeast(beginScale * detector.scaleFactor)
+                    scale = 0.5f.coerceAtLeast(beginScale * detector.scaleFactor)
                     scrollBy(
                         ((detector.focusX + scrollX) * (scale - oldScale) / oldScale).roundToInt(),
                         ((detector.focusY + scrollY) * (scale - oldScale) / oldScale).roundToInt(),
