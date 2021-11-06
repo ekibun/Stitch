@@ -1,9 +1,11 @@
 package soko.ekibun.stitch
 
 import android.app.Application
+import android.preference.PreferenceManager
 
 class App : Application() {
-    private val bitmapCache by lazy { BitmapCache(this) }
+  val sp by lazy { PreferenceManager.getDefaultSharedPreferences(this) }
+  private val bitmapCache by lazy { BitmapCache(this) }
     val stitchInfo by lazy { mutableListOf<Stitch.StitchInfo>() }
     val stitchInfo2 by lazy { mutableListOf<Stitch.StitchInfo>() }
 
@@ -17,7 +19,8 @@ class App : Application() {
         private lateinit var app: App
         val bitmapCache get() = app.bitmapCache
         val stitchInfo get() = app.stitchInfo
-        var foreground = false
+      var foreground = false
+      val sp get() = app.sp
 
         fun updateUndo() {
             app.stitchInfo2.clear()

@@ -1,6 +1,8 @@
 <resources>
 
-    <style name="Theme" parent="android:Theme.DeviceDefault.DayNight">
+    <style name="BaseTheme" parent="android:Theme.DeviceDefault.Light" />
+
+    <style name="Theme" parent="BaseTheme">
         <item name="android:colorPrimary">@color/colorPrimary</item>
         <item name="android:colorPrimaryDark">@color/colorPrimary</item>
         <item name="android:colorAccent">@color/colorPrimary</item>

@@ -34,6 +34,11 @@
     <string name="guidance_info">
         &lt;big>&lt;big>&lt;b>Stitch&lt;/b>&lt;/big>&lt;/big>&lt;br/>
         截图拼接小工具&lt;br/>
+        &lt;small>%1$s&lt;/small>
+    </string>
+    <string name="about_info">
+        &lt;big>&lt;big>&lt;b>Stitch&lt;/b>&lt;/big>&lt;/big>&lt;br/>
+        截图拼接小工具&lt;br/>
         &lt;small>%1$s&lt;/small>&lt;br/>
         &lt;br/>
         1. 点击导入/截图添加图片&lt;br/>
@@ -101,4 +106,7 @@
     <string name="label_xrange">横向范围</string>
     <string name="label_yrange">纵向范围</string>
     <string name="menu_undo">撤销</string>
+    <string name="import_from_gallery">从相册导入</string>
+    <string name="import_from_capture">捕捉屏幕截图</string>
+    <string name="menu_about">关于</string>
 </resources>

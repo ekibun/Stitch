@@ -17,7 +17,6 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.preference.PreferenceManager
 import android.text.Html
 import android.text.method.LinkMovementMethod
 import android.util.Log
@@ -37,6 +36,7 @@ class EditActivity : Activity() {
 
     private val editView by lazy { findViewById<EditView>(R.id.edit) }
     private val guidanceView by lazy { findViewById<View>(R.id.guidance) }
+    private val rootView by lazy { findViewById<View>(R.id.root) }
     private val selectInfo by lazy { findViewById<TextView>(R.id.select_info) }
     private val seekDx by lazy { findViewById<RangeSeekbar>(R.id.seek_x) }
     private val seekDy by lazy { findViewById<RangeSeekbar>(R.id.seek_y) }
@@ -51,6 +51,7 @@ class EditActivity : Activity() {
     private fun updateSelectInfo() {
         editView.dirty = true
         guidanceView.visibility = if (App.stitchInfo.isEmpty()) View.VISIBLE else View.INVISIBLE
+        rootView.visibility = if (App.stitchInfo.isEmpty()) View.INVISIBLE else View.VISIBLE
         selectInfo.text = getString(R.string.label_select, selected.size, App.stitchInfo.size)
         editView.invalidate()
         val selected = App.stitchInfo.filterIndexed { i, it -> i > 0 && selected.contains(it.key) }
@@ -117,22 +118,32 @@ class EditActivity : Activity() {
 
     private fun updateSystemUI() {
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                (if (Build.VERSION.SDK_INT >= 26) View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION else 0)
+            (if (Build.VERSION.SDK_INT >= 26) View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION else 0)
         if (Build.VERSION.SDK_INT < 26) return
         val night = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
-                Configuration.UI_MODE_NIGHT_YES
+            Configuration.UI_MODE_NIGHT_YES
         if (!night) window.decorView.systemUiVisibility = window.decorView.systemUiVisibility or
-                View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR or
-                View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR or
+            View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+    }
+
+    private fun importFromGallery() {
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.type = "image/*"
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+        startActivityForResult(Intent.createChooser(intent, "Stitch"), REQUEST_IMPORT)
+    }
+
+    private fun importFromCapture() {
+        this.startActivity(Intent(this, StartCaptureActivity::class.java))
     }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val sp = PreferenceManager.getDefaultSharedPreferences(this)
         val policyVersion = getString(R.string.policy_version)
-        if (sp.getString("policy_version", "") != policyVersion) {
+        if (App.sp.getString("policy_version", "") != policyVersion) {
             val policyView = TextView(this)
             policyView.text = Html.fromHtml(getString(R.string.policy))
             val padding = (resources.displayMetrics.density * 24).roundToInt()
@@ -140,7 +151,7 @@ class EditActivity : Activity() {
             policyView.movementMethod = LinkMovementMethod.getInstance()
             AlertDialog.Builder(this).setCancelable(false).setView(policyView)
                 .setPositiveButton(R.string.policy_accept) { _, _ ->
-                    sp.edit().putString("policy_version", policyVersion).apply()
+                    App.sp.edit().putString("policy_version", policyVersion).apply()
                 }.setNegativeButton(R.string.policy_dismiss) { _, _ ->
                     finish()
                 }.show()
@@ -188,13 +199,16 @@ class EditActivity : Activity() {
             updateRange()
         }
         findViewById<View>(R.id.menu_import).setOnClickListener {
-            val intent = Intent(Intent.ACTION_GET_CONTENT)
-            intent.type = "image/*"
-            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-            startActivityForResult(Intent.createChooser(intent, "Stitch"), REQUEST_IMPORT)
+            importFromGallery()
+        }
+        findViewById<View>(R.id.guidance_from_gallery).setOnClickListener {
+            importFromGallery()
         }
         findViewById<View>(R.id.menu_capture).setOnClickListener {
-            this.startActivity(Intent(this, StartCaptureActivity::class.java))
+            importFromCapture()
+        }
+        findViewById<View>(R.id.guidance_from_capture).setOnClickListener {
+            importFromCapture()
         }
         findViewById<View>(R.id.menu_select_all).setOnClickListener {
             selectAll()
@@ -325,37 +339,45 @@ class EditActivity : Activity() {
                 Toast.makeText(this, R.string.open_error, Toast.LENGTH_SHORT).show()
             }
         }
-        findViewById<TextView>(R.id.menu_opensource).setOnClickListener {
-            val opensourceView = TextView(this)
-            opensourceView.text = Html.fromHtml(getString(R.string.opensource))
+        findViewById<TextView>(R.id.menu_about).setOnClickListener {
+            val aboutView = TextView(this)
+            aboutView.text = Html.fromHtml(getString(R.string.about_info, getVersion(this)))
             val padding = (resources.displayMetrics.density * 24).roundToInt()
-            opensourceView.setPaddingRelative(padding, padding, padding, 0)
-            opensourceView.movementMethod = LinkMovementMethod.getInstance()
+            aboutView.setPaddingRelative(padding, padding, padding, 0)
+            aboutView.movementMethod = LinkMovementMethod.getInstance()
             AlertDialog.Builder(this)
-                .setTitle(R.string.menu_opensource)
-                .setView(opensourceView)
-                .setPositiveButton(getString(R.string.alert_ok)) { _, _ -> }
+                .setView(aboutView)
+                .setNegativeButton(getString(R.string.menu_opensource)) { _, _ ->
+                    val opensourceView = TextView(this)
+                    opensourceView.text = Html.fromHtml(getString(R.string.opensource))
+                    aboutView.setPaddingRelative(padding, padding, padding, 0)
+                    aboutView.movementMethod = LinkMovementMethod.getInstance()
+                    AlertDialog.Builder(this)
+                        .setView(aboutView)
+                        .setPositiveButton(getString(R.string.alert_ok)) { _, _ -> }
+                        .show()
+                }
+                .setNeutralButton(getString(R.string.menu_support)) { _, _ ->
+                    val intentFullUrl = "intent://platformapi/startapp?saId=10000007&" +
+                        "qrcode=https%3A%2F%2Fqr.alipay.com%2Ffkx14754b1r4mkbh6gfgg24#Intent;" +
+                        "scheme=alipayqr;package=com.eg.android.AlipayGphone;end"
+                    try {
+                        val intent = Intent.parseUri(intentFullUrl, Intent.URI_INTENT_SCHEME)
+                        startActivity(intent)
+                    } catch (e: Exception) {
+                        Toast.makeText(this, R.string.support_error, Toast.LENGTH_SHORT).show()
+                    }
+                }
+                .setPositiveButton(getString(R.string.menu_github)) { _, _ ->
+                    try {
+                        val intent = Intent(Intent.ACTION_VIEW)
+                        intent.data = Uri.parse("https://github.com/ekibun/Stitch")
+                        startActivity(intent)
+                    } catch (e: Exception) {
+                        Toast.makeText(this, R.string.open_error, Toast.LENGTH_SHORT).show()
+                    }
+                }
                 .show()
-        }
-        findViewById<TextView>(R.id.menu_support).setOnClickListener {
-            val intentFullUrl = "intent://platformapi/startapp?saId=10000007&" +
-                    "qrcode=https%3A%2F%2Fqr.alipay.com%2Ffkx14754b1r4mkbh6gfgg24#Intent;" +
-                    "scheme=alipayqr;package=com.eg.android.AlipayGphone;end"
-            try {
-                val intent = Intent.parseUri(intentFullUrl, Intent.URI_INTENT_SCHEME)
-                startActivity(intent)
-            } catch (e: Exception) {
-                Toast.makeText(this, R.string.support_error, Toast.LENGTH_SHORT).show()
-            }
-        }
-        findViewById<TextView>(R.id.menu_github).setOnClickListener {
-            try {
-                val intent = Intent(Intent.ACTION_VIEW)
-                intent.data = Uri.parse("https://github.com/ekibun/Stitch")
-                startActivity(intent)
-            } catch (e: Exception) {
-                Toast.makeText(this, R.string.open_error, Toast.LENGTH_SHORT).show()
-            }
         }
 
         seekDx.type = RangeSeekbar.TYPE_CENTER
