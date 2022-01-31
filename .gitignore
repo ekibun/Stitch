@@ -15,6 +15,7 @@
 local.properties
 # Project exclude paths
 /policy/
-opencv/
+opencv.bak/
 *.apk
 output-metadata.json
+/app/src/main/jni/opencv/build/

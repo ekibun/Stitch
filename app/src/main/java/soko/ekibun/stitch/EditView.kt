@@ -5,13 +5,17 @@ import android.app.Activity
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
-import android.view.*
+import android.view.MotionEvent
+import android.view.ScaleGestureDetector
+import android.view.VelocityTracker
+import android.view.View
 import android.widget.EdgeEffect
 import android.widget.OverScroller
 import androidx.core.graphics.applyCanvas
-import androidx.core.graphics.toRectF
+import androidx.core.graphics.withRotation
 import androidx.core.graphics.withSave
 import kotlinx.coroutines.*
+import java.util.concurrent.Executors
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.math.*
@@ -64,8 +68,7 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
     private fun drawToCanvas(c: Canvas, drawMask: Boolean = true) {
         val activity = context as? EditActivity
         val srcRange = Rect()
-        val dstRange = Rect()
-        val over = RectF()
+        val dstRange = RectF()
         val path = Path()
         for (i in 0 until App.stitchInfo.size) {
             val it = App.stitchInfo.getOrNull(i) ?: continue
@@ -76,12 +79,11 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
                 (it.height * it.yb).roundToInt()
             )
             dstRange.set(
-                it.x + srcRange.left,
-                it.y + srcRange.top,
-                it.x + srcRange.right,
-                it.y + srcRange.bottom
+                it.cx + (srcRange.left - it.width / 2f) * it.scale,
+                it.cy + (srcRange.top - it.height / 2f) * it.scale,
+                it.cx + (srcRange.right - it.width / 2f) * it.scale,
+                it.cy + (srcRange.bottom - it.height / 2f) * it.scale,
             )
-            over.set(it.over)
 
             if (dstRange.left > c.clipBounds.right ||
                 dstRange.right < c.clipBounds.left ||
@@ -89,27 +91,28 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
                 dstRange.bottom < c.clipBounds.top
             ) continue
             val bmp = App.bitmapCache.getBitmap(it.image) ?: return
-            path.reset()
-            path.addRect(dstRange.toRectF(), Path.Direction.CW)
-            if (over.right > over.left && over.bottom > over.top) {
+            c.withRotation(it.rot, it.cx, it.cy) {
+                path.reset()
+                path.addRect(dstRange, Path.Direction.CW)
                 it.shader?.let { shader ->
-                    gradientPaint.shader = shader
-                    c.drawRect(over, gradientPaint)
+                    try {
+                        gradientPaint.shader = shader
+                        c.drawRect(dstRange, gradientPaint)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
-                path.addRect(over, Path.Direction.CCW)
-            }
-            gradientPaint.shader = null
-            c.drawPath(path, gradientPaint)
 
-            if (drawMask && activity != null &&
-                activity.selected.isNotEmpty() &&
-                activity.selected.contains(it.key)
-            ) {
-                overPaint.color = maskColor
-                c.drawRect(dstRange, overPaint)
+                if (drawMask && activity != null &&
+                    activity.selected.isNotEmpty() &&
+                    activity.selected.contains(it.key)
+                ) {
+                    overPaint.color = maskColor
+                    c.drawRect(dstRange, overPaint)
+                }
+                overPaint.color = Color.BLACK
+                c.drawBitmap(bmp, srcRange, dstRange, overPaint)
             }
-            overPaint.color = Color.BLACK
-            c.drawBitmap(bmp, srcRange, dstRange, overPaint)
         }
     }
 
@@ -161,97 +164,82 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
     private var cacheBitmap2: Bitmap? = null
 
     fun update() {
-        var lastX = 0
-        var lastY = 0
-        var lastW = 0
-        var lastH = 0
-        val lastRect = Rect()
-        val rect = Rect()
+        var cx = 0f
+        var cy = 0f
+        var rot = 0f
+        var scale = 1f
+        var lastPoints = listOf<PointF>()
         maxX = Int.MIN_VALUE
         maxY = Int.MIN_VALUE
         minX = Int.MAX_VALUE
         minY = Int.MAX_VALUE
+        var cos = 1f
+        var sin = 0f
         App.stitchInfo.forEachIndexed { i, it ->
-            it.x = if (i == 0) 0 else lastX + it.dx - (it.width - lastW) / 2
-            it.y = if (i == 0) 0 else lastY + it.dy - (it.height - lastH) / 2
-            lastX = it.x
-            lastY = it.y
-            lastW = it.width
-            lastH = it.height
-            rect.set(
-                it.x + (it.width * it.xa).roundToInt(),
-                it.y + (it.height * it.ya).roundToInt(),
-                it.x + (it.width * it.xb).roundToInt(),
-                it.y + (it.height * it.yb).roundToInt()
+            var dx = (it.dx * cos - it.dy * sin) * scale
+            var dy = (it.dy * cos + it.dx * sin) * scale
+            cx = if (i == 0) 0f else cx + dx
+            cy = if (i == 0) 0f else cy + dy
+            rot += it.drot
+            scale *= it.dscale
+            it.rot = rot
+            it.scale = scale
+            it.cx = cx
+            it.cy = cy
+
+            cos = cos(it.rot * Math.PI / 180).toFloat()
+            sin = sin(it.rot * Math.PI / 180).toFloat()
+            val l = it.width * (it.xa - 0.5f) * it.scale
+            val t = it.height * (it.ya - 0.5f) * it.scale
+            val r = it.width * (it.xb - 0.5f) * it.scale
+            val b = it.height * (it.yb - 0.5f) * it.scale
+            val points = listOf(
+                PointF(cx + l * cos - t * sin, cy + l * sin + t * cos),
+                PointF(cx + l * cos - b * sin, cy + l * sin + b * cos),
+                PointF(cx + r * cos - t * sin, cy + r * sin + t * cos),
+                PointF(cx + r * cos - b * sin, cy + r * sin + b * cos)
             )
-            minX = min(minX, rect.left)
-            minY = min(minY, rect.top)
-            maxX = max(rect.right, maxX)
-            maxY = max(rect.bottom, maxY)
-
-            it.over.left = max(rect.left, lastRect.left).toFloat()
-            it.over.top = max(rect.top, lastRect.top).toFloat()
-            it.over.right = min(rect.right, lastRect.right).toFloat()
-            it.over.bottom = min(rect.bottom, lastRect.bottom).toFloat()
-            lastRect.set(rect)
-
-            it.shader = if (abs(it.dx) > abs(it.dy)) {
-                if (it.dx > 0) {
-                    if (it.a < it.b) LinearGradient(
-                        it.over.left + (it.over.right - it.over.left) * it.a,
-                        0f,
-                        it.over.left + (it.over.right - it.over.left) * it.b,
-                        0f,
-                        Color.TRANSPARENT,
-                        Color.WHITE,
-                        Shader.TileMode.CLAMP
-                    ) else {
-                        it.over.right = it.over.left + (it.over.right - it.over.left) * it.a
-                        null
-                    }
-                } else {
-                    if (it.a < it.b) LinearGradient(
-                        it.over.right - (it.over.right - it.over.left) * it.a,
-                        0f,
-                        it.over.right - (it.over.right - it.over.left) * it.b,
-                        0f,
-                        Color.TRANSPARENT,
-                        Color.WHITE,
-                        Shader.TileMode.CLAMP
-                    ) else {
-                        it.over.left = it.over.right - (it.over.right - it.over.left) * it.a
-                        null
-                    }
-                }
-            } else {
-                if (it.dy > 0) {
-                    if (it.a < it.b) LinearGradient(
-                        0f,
-                        it.over.top + (it.over.bottom - it.over.top) * it.a,
-                        0f,
-                        it.over.top + (it.over.bottom - it.over.top) * it.b,
-                        Color.TRANSPARENT,
-                        Color.WHITE,
-                        Shader.TileMode.CLAMP
-                    ) else {
-                        it.over.bottom = it.over.top + (it.over.bottom - it.over.top) * it.a
-                        null
-                    }
-                } else {
-                    if (it.a < it.b) LinearGradient(
-                        0f,
-                        it.over.bottom - (it.over.bottom - it.over.top) * it.a,
-                        0f,
-                        it.over.bottom - (it.over.bottom - it.over.top) * it.b,
-                        Color.TRANSPARENT,
-                        Color.WHITE,
-                        Shader.TileMode.CLAMP
-                    ) else {
-                        it.over.top = it.over.bottom - (it.over.bottom - it.over.top) * it.a
-                        null
-                    }
-                }
+            if (it.dx == 0f && it.dy == 0f) {
+                dx = -sin
+                dy = cos
             }
+            val mag2 = dx * dx + dy * dy
+            var minV = Float.MAX_VALUE
+            var maxV = Float.MIN_VALUE
+            for (p in points) {
+                val prod = (cx - p.x) * dx + (cy - p.y) * dy
+                minV = min(minV, prod)
+                maxV = max(maxV, prod)
+
+                minX = min(minX, p.x.roundToInt())
+                minY = min(minY, p.y.roundToInt())
+                maxX = max(maxX, p.x.roundToInt())
+                maxY = max(maxY, p.y.roundToInt())
+            }
+            var minO = Float.MAX_VALUE
+            var maxO = Float.MIN_VALUE
+            for (p in lastPoints) {
+                val prod = (cx - p.x) * dx + (cy - p.y) * dy
+                minO = min(minO, prod)
+                maxO = max(maxO, prod)
+            }
+            lastPoints = points
+
+            minV = max(minV, minO) / mag2
+            maxV = min(maxV, maxO) / mag2
+
+            val va = maxV - (maxV - minV) * it.a
+            val vb = maxV - (maxV - minV) * it.b * (1 + 1e-5f)
+
+            it.shader = LinearGradient(
+                cx - (dx * cos + dy * sin) * va,
+                cy - (-dx * sin + dy * cos) * va,
+                cx - (dx * cos + dy * sin) * vb,
+                cy - (-dx * sin + dy * cos) * vb,
+                Color.TRANSPARENT,
+                Color.WHITE,
+                Shader.TileMode.CLAMP
+            )
         }
         clampScroll()
     }
@@ -281,10 +269,8 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
     private var job: Job? = null
     var dirty = false
 
-    @ObsoleteCoroutinesApi
-    private val dispatcher by lazy { newSingleThreadContext("draw") }
+    private val dispatcher by lazy { Executors.newSingleThreadExecutor().asCoroutineDispatcher() }
 
-    @ObsoleteCoroutinesApi
     @SuppressLint("DrawAllocation")
     override fun onDraw(c: Canvas) {
         c.translate(scrollX.toFloat(), scrollY.toFloat())
@@ -339,38 +325,38 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
                 val selected = activity?.selected?.contains(it.key) ?: false
                 paint.color = if (selected) colorWarn else colorPrimary
                 c.drawCircle(
-                    it.x + it.width / 2f,
-                    it.y + it.height / 2f,
+                    it.cx,
+                    it.cy,
                     radius, paint
                 )
                 paint.color = Color.WHITE
                 c.drawText(
-                    0.toString(), it.x + it.width / 2f,
-                    it.y + it.height / 2f + baseline, paint
+                    0.toString(), it.cx,
+                    it.cy + baseline, paint
                 )
             }
             App.stitchInfo.reduceIndexedOrNull { i, acc, it ->
                 val selected = activity?.selected?.contains(it.key) ?: false
                 paint.color = if (selected) colorWarn else colorPrimary
                 c.drawCircle(
-                    it.x + it.width / 2f,
-                    it.y + it.height / 2f,
+                    it.cx,
+                    it.cy,
                     radius, paint
                 )
-                val dx = it.x + it.width / 2f - acc.x - acc.width / 2f
-                val dy = it.y + it.height / 2f - acc.y - acc.height / 2f
+                val dx = it.cx - acc.cx
+                val dy = it.cy - acc.cy
                 val lineOffset = sqrt(dx * dx.toDouble() + dy * dy).toFloat() / radius
                 if (lineOffset > 2) c.drawLine(
-                    acc.x + acc.width / 2f + dx / lineOffset,
-                    acc.y + acc.height / 2f + dy / lineOffset,
-                    it.x + it.width / 2f - dx / lineOffset,
-                    it.y + it.height / 2f - dy / lineOffset,
+                    acc.cx + dx / lineOffset,
+                    acc.cy + dy / lineOffset,
+                    it.cx - dx / lineOffset,
+                    it.cy - dy / lineOffset,
                     paint
                 )
                 paint.color = Color.WHITE
                 c.drawText(
-                    i.toString(), it.x + it.width / 2f,
-                    it.y + it.height / 2f + baseline, paint
+                    i.toString(), it.cx,
+                    it.cy + baseline, paint
                 )
                 it
             }
@@ -465,11 +451,11 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
                 val y = (event.y - transY) / scale
                 val radius = 20 * resources.displayMetrics.density / scale
                 App.stitchInfo.lastOrNull {
-                    abs(it.x + it.width / 2f - x) < radius && abs(it.y + it.height / 2f - y) < radius
+                    abs(it.cx - x) < radius && abs(it.cy - y) < radius
                 }?.let { hit ->
                     this.touching = hit
-                    downOffsetX = x - hit.x
-                    downOffsetY = y - hit.y
+                    downOffsetX = x - hit.cx
+                    downOffsetY = y - hit.cy
                 }
                 initialTouchX = event.x
                 lastTouchX = event.x
@@ -524,18 +510,24 @@ class EditView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
                 val touching = touching
                 if (touching != null && event.pointerCount == 1) {
                     val (transX, transY) = getTranslate()
-                    val x = ((event.getX(index) - transX) / scale - downOffsetX).roundToInt()
-                    val y = ((event.getY(index) - transY) / scale - downOffsetY).roundToInt()
+                    val x = (event.getX(index) - transX) / scale - downOffsetX
+                    val y = (event.getY(index) - transY) / scale - downOffsetY
                     if (abs(initialTouchX - event.x) > 10 || abs(initialTouchY - event.y) > 10) {
                         if (!dragging) App.updateUndo()
                         dragging = true
                     }
                     if (dragging) {
-                        touching.dx = touching.dx - touching.x + x
-                        touching.dy = touching.dy - touching.y + y
-                        touching.x = x
-                        touching.y = y
-                        (context as? EditActivity)?.updateRange()
+                        val ddx = x - touching.cx
+                        val ddy = y - touching.cy
+                        val cos = cos((touching.rot - touching.drot) * Math.PI / 180).toFloat()
+                        val sin = sin((touching.rot - touching.drot) * Math.PI / 180).toFloat()
+                        val scale =
+                            if (touching.dscale == 0f) 0f else touching.scale / touching.dscale
+                        touching.dx =
+                            touching.dx + if (scale == 0f) 0f else (ddx * cos + ddy * sin) / scale
+                        touching.dy =
+                            touching.dy + if (scale == 0f) 0f else (-ddx * sin + ddy * cos) / scale
+                        (context as? EditActivity)?.updateSelectInfo()
                     }
                 } else {
                     val oldX = scrollX

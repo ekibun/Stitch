@@ -16,7 +16,8 @@
         android:theme="@style/Theme.Stitch">
         <activity
             android:name=".EditActivity"
-            android:clearTaskOnLaunch="true">
+            android:clearTaskOnLaunch="true"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

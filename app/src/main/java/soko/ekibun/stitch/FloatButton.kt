@@ -8,7 +8,7 @@ import android.os.Build
 import android.view.*
 import android.widget.RelativeLayout
 import androidx.core.content.edit
-import kotlin.math.abs
+import kotlin.math.hypot
 import kotlin.math.roundToInt
 
 @SuppressLint("ClickableViewAccessibility", "RtlHardcoded")
@@ -47,7 +47,6 @@ class FloatButton(var service: CaptureService) {
     wmParams.y = App.sp.getInt("float_y", Int.MAX_VALUE / 2)
     windowManager.addView(floatLayout, wmParams)
 
-
     var downX = 0
     var downY = 0
     var isMove = false
@@ -72,7 +71,9 @@ class FloatButton(var service: CaptureService) {
           }, ViewConfiguration.getLongPressTimeout().toLong())
         }
         MotionEvent.ACTION_MOVE -> {
-          if (!isMove && abs(downX - event.rawX) + abs(downY - event.rawY) > 10) {
+          if (!isMove && hypot(downX - event.rawX, downY - event.rawY) >
+            ViewConfiguration.get(floatView.context).scaledTouchSlop * 2
+          ) {
             clickTime = 0L
             isMove = true
             val rect = Rect()

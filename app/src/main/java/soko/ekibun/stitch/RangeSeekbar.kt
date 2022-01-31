@@ -11,10 +11,17 @@ import android.view.MotionEvent
 import android.view.View
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.min
 
 class RangeSeekbar(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
-    var a = 0f
-    var b = 1f
+  var a = 0f
+    set(value) {
+      field = max(0f, min(1f, value))
+    }
+  var b = 1f
+    set(value) {
+      field = max(0f, min(1f, value))
+    }
 
     companion object {
         const val TYPE_RANGE = 0

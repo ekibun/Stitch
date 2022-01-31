@@ -21,6 +21,7 @@ import android.text.Html
 import android.text.method.LinkMovementMethod
 import android.util.Log
 import android.view.View
+import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import kotlinx.coroutines.Dispatchers
@@ -43,32 +44,43 @@ class EditActivity : Activity() {
     private val seekTrim by lazy { findViewById<RangeSeekbar>(R.id.seek_trim) }
     private val seekXRange by lazy { findViewById<RangeSeekbar>(R.id.seek_xrange) }
     private val seekYRange by lazy { findViewById<RangeSeekbar>(R.id.seek_yrange) }
+    private val seekRotate by lazy { findViewById<RangeSeekbar>(R.id.seek_rotate) }
+    private val seekScale by lazy { findViewById<RangeSeekbar>(R.id.seek_scale) }
 
     val selected by lazy {
         mutableSetOf<Int>()
     }
 
-    private fun updateSelectInfo() {
+    private fun invalidateView() {
+        editView.update()
         editView.dirty = true
+        editView.invalidate()
+    }
+
+    fun updateSelectInfo() {
+        invalidateView()
         guidanceView.visibility = if (App.stitchInfo.isEmpty()) View.VISIBLE else View.INVISIBLE
         rootView.visibility = if (App.stitchInfo.isEmpty()) View.INVISIBLE else View.VISIBLE
         selectInfo.text = getString(R.string.label_select, selected.size, App.stitchInfo.size)
-        editView.invalidate()
-        val selected = App.stitchInfo.filterIndexed { i, it -> i > 0 && selected.contains(it.key) }
+        val selected = App.stitchInfo.filter { selected.contains(it.key) }
         if (selected.isNotEmpty()) {
-            seekDx.a = selected.map { (it.dx.toFloat() / it.width + 1) / 2 }.average().toFloat()
-            seekDy.a = selected.map { (it.dy.toFloat() / it.height + 1) / 2 }.average().toFloat()
+            seekDx.a = selected.map { (it.dx / it.width + 1) / 2 }.average().toFloat()
+            seekDy.a = selected.map { (it.dy / it.height + 1) / 2 }.average().toFloat()
             seekTrim.a = selected.map { it.a }.average().toFloat()
             seekTrim.b = selected.map { it.b }.average().toFloat()
             seekXRange.a = selected.map { it.xa }.average().toFloat()
             seekXRange.b = selected.map { it.xb }.average().toFloat()
             seekYRange.a = selected.map { it.ya }.average().toFloat()
             seekYRange.b = selected.map { it.yb }.average().toFloat()
+            seekRotate.a = selected.map { (it.drot / 360) + 0.5f }.average().toFloat()
+            seekScale.a = selected.map { it.dscale / 2f }.average().toFloat()
             seekDx.invalidate()
             seekDy.invalidate()
             seekTrim.invalidate()
             seekXRange.invalidate()
             seekYRange.invalidate()
+            seekRotate.invalidate()
+            seekScale.invalidate()
         }
     }
 
@@ -138,6 +150,47 @@ class EditActivity : Activity() {
         this.startActivity(Intent(this, StartCaptureActivity::class.java))
     }
 
+    private fun stitch(method: Stitch.CombineMethod) {
+        if (selected.isEmpty()) {
+            Toast.makeText(this, R.string.please_select_image, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val progress = ProgressDialog(this)
+        var done = 0
+        progress.setMessage(getString(R.string.alert_computing, done, selected.size))
+        progress.show()
+        GlobalScope.launch(Dispatchers.IO) {
+            App.updateUndo()
+            App.stitchInfo.reduceOrNull { acc, it ->
+                if (progress.isShowing && selected.contains(it.key)) {
+                    Stitch.combine(method, acc, it)?.let { data ->
+                        if (progress.isShowing) {
+                            it.dx = data.dx
+                            it.dy = data.dy
+                            it.drot = data.drot
+                            it.dscale = data.dscale
+                        }
+                    }
+                    ++done
+                    runOnUiThread {
+                        progress.setMessage(
+                            getString(
+                                R.string.alert_computing,
+                                done,
+                                selected.size
+                            )
+                        )
+                    }
+                }
+                it
+            }
+            runOnUiThread {
+                updateSelectInfo()
+                progress.cancel()
+            }
+        }
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -196,7 +249,7 @@ class EditActivity : Activity() {
         findViewById<View>(R.id.menu_undo).setOnClickListener {
             App.undo()
             selected.clear()
-            updateRange()
+            updateSelectInfo()
         }
         findViewById<View>(R.id.menu_import).setOnClickListener {
             importFromGallery()
@@ -229,11 +282,17 @@ class EditActivity : Activity() {
             App.stitchInfo[i] = b
             val adx = a.dx
             val ady = a.dy
+            val adr = a.drot
+            val ads = a.dscale
             a.dx = b.dx
             a.dy = b.dy
+            a.drot = b.drot
+            a.dscale = b.dscale
             b.dx = adx
             b.dy = ady
-            updateRange()
+            b.drot = adr
+            b.dscale = ads
+            updateSelectInfo()
         }
         findViewById<View>(R.id.menu_remove).setOnClickListener {
             if (selected.isEmpty()) {
@@ -247,7 +306,6 @@ class EditActivity : Activity() {
                     App.updateUndo()
                     App.stitchInfo.removeAll { selected.contains(it.key) }
                     selected.clear()
-                    updateRange()
                     updateSelectInfo()
                 }.show()
         }
@@ -290,43 +348,23 @@ class EditActivity : Activity() {
             saveIntent.putExtra(Intent.EXTRA_TITLE, App.bitmapCache.createFileName())
             startActivityForResult(saveIntent, REQUEST_SAVE)
         }
+        findViewById<View>(R.id.menu_auto_stitch).setOnLongClickListener {
+            val popupMenu = PopupMenu(this, it)
+            popupMenu.menuInflater.inflate(R.menu.menu_stitch, popupMenu.menu)
+            popupMenu.show()
+            popupMenu.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.menu_find_homography -> stitch(Stitch.CombineMethod.FIND_HOMOGRAPHY)
+                    R.id.menu_phase_correlate -> stitch(Stitch.CombineMethod.PHASE_CORRELATE)
+                    R.id.menu_find_homography_diff -> stitch(Stitch.CombineMethod.FIND_HOMOGRAPHY_DIFF)
+                    R.id.menu_phase_correlate_diff -> stitch(Stitch.CombineMethod.PHASE_CORRELATE_DIFF)
+                }
+                true
+            }
+            true
+        }
         findViewById<View>(R.id.menu_auto_stitch).setOnClickListener {
-            if (selected.isEmpty()) {
-                Toast.makeText(this, R.string.please_select_image, Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            val progress = ProgressDialog(this)
-            var done = 0
-            progress.setMessage(getString(R.string.alert_computing, done, selected.size))
-            progress.show()
-            GlobalScope.launch(Dispatchers.IO) {
-                App.updateUndo()
-                App.stitchInfo.reduceOrNull { acc, it ->
-                    if (progress.isShowing && selected.contains(it.key)) {
-                        Stitch.combine(acc, it)?.let { data ->
-                            if (progress.isShowing) {
-                                it.dx = data.dx
-                                it.dy = data.dy
-                            }
-                        }
-                        ++done
-                        runOnUiThread {
-                            progress.setMessage(
-                                getString(
-                                    R.string.alert_computing,
-                                    done,
-                                    selected.size
-                                )
-                            )
-                        }
-                    }
-                    it
-                }
-                runOnUiThread {
-                    updateRange()
-                    progress.cancel()
-                }
-            }
+            stitch(Stitch.CombineMethod.PHASE_CORRELATE_DIFF)
         }
         val str = getString(R.string.guidance_info, getVersion(this))
         findViewById<TextView>(R.id.guidance_info).text = Html.fromHtml(str)
@@ -350,10 +388,10 @@ class EditActivity : Activity() {
                 .setNegativeButton(getString(R.string.menu_opensource)) { _, _ ->
                     val opensourceView = TextView(this)
                     opensourceView.text = Html.fromHtml(getString(R.string.opensource))
-                    aboutView.setPaddingRelative(padding, padding, padding, 0)
-                    aboutView.movementMethod = LinkMovementMethod.getInstance()
+                    opensourceView.setPaddingRelative(padding, padding, padding, 0)
+                    opensourceView.movementMethod = LinkMovementMethod.getInstance()
                     AlertDialog.Builder(this)
-                        .setView(aboutView)
+                        .setView(opensourceView)
                         .setPositiveButton(getString(R.string.alert_ok)) { _, _ -> }
                         .show()
                 }
@@ -384,17 +422,33 @@ class EditActivity : Activity() {
         seekDx.a = 0.5f
         seekDx.onRangeChange = { a, _ ->
             App.stitchInfo.forEach {
-                if (selected.contains(it.key)) it.dx = ((a * 2 - 1) * it.width).roundToInt()
+                if (selected.contains(it.key)) it.dx = (a * 2 - 1) * it.width
             }
-            updateRange()
+            invalidateView()
         }
         seekDy.type = RangeSeekbar.TYPE_CENTER
         seekDy.a = 0.5f
         seekDy.onRangeChange = { a, _ ->
             App.stitchInfo.forEach {
-                if (selected.contains(it.key)) it.dy = ((a * 2 - 1) * it.height).roundToInt()
+                if (selected.contains(it.key)) it.dy = (a * 2 - 1) * it.height
             }
-            updateRange()
+            invalidateView()
+        }
+        seekRotate.type = RangeSeekbar.TYPE_CENTER
+        seekRotate.a = 0.5f
+        seekRotate.onRangeChange = { a, _ ->
+            App.stitchInfo.forEach {
+                if (selected.contains(it.key)) it.drot = (a * 2 - 1) * 180
+            }
+            invalidateView()
+        }
+        seekScale.type = RangeSeekbar.TYPE_CENTER
+        seekScale.a = 0.5f
+        seekScale.onRangeChange = { a, _ ->
+            App.stitchInfo.forEach {
+                if (selected.contains(it.key)) it.dscale = (a * 2)
+            }
+            invalidateView()
         }
         seekTrim.type = RangeSeekbar.TYPE_GRADIENT
         seekTrim.a = 0.4f
@@ -406,7 +460,7 @@ class EditActivity : Activity() {
                     it.b = b
                 }
             }
-            updateRange()
+            invalidateView()
         }
         seekXRange.onRangeChange = { a, b ->
             App.stitchInfo.forEach {
@@ -415,7 +469,7 @@ class EditActivity : Activity() {
                     it.xb = b
                 }
             }
-            updateRange()
+            invalidateView()
         }
         seekYRange.onRangeChange = { a, b ->
             App.stitchInfo.forEach {
@@ -424,7 +478,7 @@ class EditActivity : Activity() {
                     it.yb = b
                 }
             }
-            updateRange()
+            invalidateView()
         }
         selectAll()
     }
@@ -452,7 +506,7 @@ class EditActivity : Activity() {
                     }
                     runOnUiThread {
                         progress.cancel()
-                        updateRange()
+                        updateSelectInfo()
                     }
                 }
             }
@@ -492,14 +546,9 @@ class EditActivity : Activity() {
         }
     }
 
-    fun updateRange() {
-        editView.update()
-        updateSelectInfo()
-    }
-
     override fun onResume() {
         super.onResume()
-        updateRange()
+        updateSelectInfo()
         updateSystemUI()
     }
 

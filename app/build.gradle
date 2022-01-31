@@ -25,13 +25,13 @@ static def gitVersionTag() {
 }
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
     buildToolsVersion '30.0.3'
 
     defaultConfig {
         applicationId "soko.ekibun.stitch"
         minSdkVersion 21
-        targetSdkVersion 30
+        targetSdkVersion 31
         versionCode gitVersionCode()
         versionName gitVersionTag()
     }
@@ -79,6 +79,9 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.core:core-ktx:1.6.0'
+    implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.8'
+    implementation 'androidx.appcompat:appcompat:1.3.1'
+    implementation 'com.google.android.material:material:1.4.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.1'
 }

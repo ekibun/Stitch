@@ -239,6 +239,22 @@
                             android:layout_marginBottom="4dp"
                             android:padding="8dp"
                             android:text="@string/label_yrange" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginBottom="4dp"
+                            android:padding="8dp"
+                            android:text="@string/label_rotate" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginBottom="4dp"
+                            android:padding="8dp"
+                            android:text="@string/label_scale" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -278,6 +294,22 @@
 
                         <soko.ekibun.stitch.RangeSeekbar
                             android:id="@+id/seek_yrange"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:max="20"
+                            android:progress="10" />
+
+                        <soko.ekibun.stitch.RangeSeekbar
+                            android:id="@+id/seek_rotate"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:max="20"
+                            android:progress="10" />
+
+                        <soko.ekibun.stitch.RangeSeekbar
+                            android:id="@+id/seek_scale"
                             android:layout_width="match_parent"
                             android:layout_height="0dp"
                             android:layout_weight="1"
