@@ -30,6 +30,7 @@
     <string name="menu_share">分享</string>
     <string name="save_success">图片保存成功</string>
     <string name="throw_error">出错啦</string>
+    <string name="throw_error_capture">捕捉屏幕失败，请允许后台运行并重新截取</string>
 
     <string name="guidance_info">
         &lt;big>&lt;big>&lt;b>Stitch&lt;/b>&lt;/big>&lt;/big>&lt;br/>

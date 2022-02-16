@@ -4,16 +4,20 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
+import android.widget.Toast
 
 class CaptureService : Service() {
     private var screenCapture: ScreenCapture? = null
     private val floatButton by lazy { FloatButton(this) }
     private val notification by lazy { Notification(this) }
 
-    private var computing = 0
-
     fun capture() {
-        val bmp = screenCapture?.capture()!!
+        val bmp = screenCapture?.capture()
+        if (bmp == null) {
+            Toast.makeText(this, R.string.throw_error_capture, Toast.LENGTH_LONG).show()
+            longClick()
+            return
+        }
         val key = App.bitmapCache.saveBitmap(bmp)
         val info = Stitch.StitchInfo(key, bmp.width, bmp.height)
         App.stitchInfo.add(info)
@@ -21,11 +25,6 @@ class CaptureService : Service() {
     }
 
     fun longClick() {
-        while (computing > 0) try {
-            Thread.sleep(100)
-        } catch (e: InterruptedException) {
-            e.printStackTrace()
-        }
         startActivity(Intent(this, EditActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         })
@@ -38,7 +37,6 @@ class CaptureService : Service() {
     }
 
     override fun onCreate() {
-        startService(Intent(this, QuickTileService::class.java))
         App.foreground = true
         floatButton.run { }
         notification.run { }
@@ -50,7 +48,6 @@ class CaptureService : Service() {
         stopForeground(true)
         screenCapture?.destroy()
         floatButton.destroy()
-        startService(Intent(this, QuickTileService::class.java))
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {

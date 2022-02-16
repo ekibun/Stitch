@@ -21,8 +21,10 @@ class Notification(private val service: Service) {
         )
         notificationIntent.putExtra("notifyClick", true)
 
-        val pendingIntent =
-            PendingIntent.getService(service.applicationContext, 0, notificationIntent, 0)
+        val pendingIntent = PendingIntent.getService(
+            service.applicationContext, 0, notificationIntent,
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
+        )
         if (Build.VERSION.SDK_INT > 25) {
             val channel =
                 NotificationChannel("stitch", "Stitch", NotificationManager.IMPORTANCE_MIN)
