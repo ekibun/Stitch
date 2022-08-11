@@ -1,395 +1,298 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
-    <ScrollView
-        android:id="@+id/guidance"
+    <soko.ekibun.stitch.EditView
+        android:id="@+id/edit"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:fillViewport="true">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="vertical"
-            android:padding="40dp">
-
-            <TextView
-                android:id="@+id/guidance_info"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="8dp"
-                tools:text="@string/guidance_info" />
-
-            <LinearLayout
-                android:id="@+id/guidance_from_gallery"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="8dp"
-                android:background="@drawable/bg_rect"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:padding="24dp">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="8dp"
-                    android:src="@drawable/ic_gallery"
-                    android:tint="?android:textColorPrimary" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/import_from_gallery" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/guidance_from_capture"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="8dp"
-                android:background="@drawable/bg_rect"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:padding="24dp">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="8dp"
-                    android:src="@drawable/ic_tile"
-                    android:tint="?android:textColorPrimary" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/import_from_capture" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/menu_privacy"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackground"
-                android:padding="8dp"
-                android:text="@string/menu_privacy"
-                android:textColor="?android:colorAccent" />
-
-            <TextView
-                android:id="@+id/menu_about"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackground"
-                android:padding="8dp"
-                android:text="@string/menu_about"
-                android:textColor="?android:attr/textColorPrimary" />
-        </LinearLayout>
-    </ScrollView>
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        tools:visibility="invisible" />
 
     <LinearLayout
-        android:id="@+id/root"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        tools:visibility="invisible">
-
-
-        <soko.ekibun.stitch.EditView
-            android:id="@+id/edit"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            tools:visibility="invisible" />
+        android:layout_height="wrap_content"
+        android:background="?android:colorBackground"
+        android:elevation="10dp"
+        android:orientation="vertical">
 
         <LinearLayout
+            android:id="@+id/panel0"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?android:colorBackground"
-            android:elevation="10dp"
-            android:orientation="vertical">
+            android:background="@color/opaque"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/menu_select_all"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="8dp"
+                android:layout_marginStart="8dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:text="@string/menu_select_all"
+                android:textColor="?android:attr/textColorPrimary" />
+
+            <TextView
+                android:id="@+id/menu_select_clear"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="8dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:text="@string/menu_select_clear"
+                android:textColor="?android:attr/textColorPrimary" />
+
+            <TextView
+                android:id="@+id/select_info"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="8dp"
+                android:layout_weight="1"
+                android:maxLines="1"
+                android:padding="8dp"
+                tools:text="已选中 8/10" />
+
+            <TextView
+                android:id="@+id/menu_swap"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="8dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:text="@string/menu_swap"
+                android:textColor="?android:attr/textColorPrimary" />
+
+            <TextView
+                android:id="@+id/menu_remove"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="8dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:text="@string/menu_remove"
+                android:textColor="@color/colorWarn" />
+
+            <TextView
+                android:id="@+id/menu_auto_stitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="8dp"
+                android:layout_marginEnd="8dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:text="@string/menu_auto_stitch"
+                android:textColor="@color/colorPrimary" />
+        </LinearLayout>
+
+        <ScrollView
+            android:id="@+id/panel1"
+            android:layout_width="match_parent"
+            android:layout_height="120dp">
 
             <LinearLayout
-                android:id="@+id/panel0"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/opaque"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/menu_select_all"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="8dp"
-                    android:layout_marginStart="8dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:padding="8dp"
-                    android:text="@string/menu_select_all"
-                    android:textColor="?android:attr/textColorPrimary" />
-
-                <TextView
-                    android:id="@+id/menu_select_clear"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="8dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:padding="8dp"
-                    android:text="@string/menu_select_clear"
-                    android:textColor="?android:attr/textColorPrimary" />
-
-                <TextView
-                    android:id="@+id/select_info"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="8dp"
-                    android:layout_weight="1"
-                    android:maxLines="1"
-                    android:padding="8dp"
-                    tools:text="已选中 8/10" />
-
-                <TextView
-                    android:id="@+id/menu_swap"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="8dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:padding="8dp"
-                    android:text="@string/menu_swap"
-                    android:textColor="?android:attr/textColorPrimary" />
-
-                <TextView
-                    android:id="@+id/menu_remove"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="8dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:padding="8dp"
-                    android:text="@string/menu_remove"
-                    android:textColor="@color/colorWarn" />
-
-                <TextView
-                    android:id="@+id/menu_auto_stitch"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:padding="8dp"
-                    android:text="@string/menu_auto_stitch"
-                    android:textColor="@color/colorPrimary" />
-            </LinearLayout>
-
-            <ScrollView
-                android:id="@+id/panel1"
-                android:layout_width="match_parent"
-                android:layout_height="120dp">
+                android:baselineAligned="false"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingStart="16dp"
+                android:paddingEnd="24dp">
 
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:baselineAligned="false"
-                    android:gravity="center"
-                    android:orientation="horizontal"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="24dp">
+                    android:orientation="vertical">
 
-                    <LinearLayout
+                    <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
+                        android:layout_marginTop="4dp"
+                        android:padding="8dp"
+                        android:text="@string/label_dx" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:padding="8dp"
-                            android:text="@string/label_dx" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:padding="8dp"
+                        android:text="@string/label_dy" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:padding="8dp"
-                            android:text="@string/label_dy" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:padding="8dp"
+                        android:text="@string/label_trim" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:padding="8dp"
-                            android:text="@string/label_trim" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:padding="8dp"
+                        android:text="@string/label_xrange" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:padding="8dp"
-                            android:text="@string/label_xrange" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="4dp"
+                        android:padding="8dp"
+                        android:text="@string/label_yrange" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:layout_marginBottom="4dp"
-                            android:padding="8dp"
-                            android:text="@string/label_yrange" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="4dp"
+                        android:padding="8dp"
+                        android:text="@string/label_rotate" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:layout_marginBottom="4dp"
-                            android:padding="8dp"
-                            android:text="@string/label_rotate" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:layout_marginBottom="4dp"
-                            android:padding="8dp"
-                            android:text="@string/label_scale" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <soko.ekibun.stitch.RangeSeekbar
-                            android:id="@+id/seek_x"
-                            android:layout_width="match_parent"
-                            android:layout_height="0dp"
-                            android:layout_weight="1"
-                            tools:ignore="NestedWeights" />
-
-                        <soko.ekibun.stitch.RangeSeekbar
-                            android:id="@+id/seek_y"
-                            android:layout_width="match_parent"
-                            android:layout_height="0dp"
-                            android:layout_weight="1" />
-
-                        <soko.ekibun.stitch.RangeSeekbar
-                            android:id="@+id/seek_trim"
-                            android:layout_width="match_parent"
-                            android:layout_height="0dp"
-                            android:layout_weight="1"
-                            android:max="20"
-                            android:progress="10" />
-
-                        <soko.ekibun.stitch.RangeSeekbar
-                            android:id="@+id/seek_xrange"
-                            android:layout_width="match_parent"
-                            android:layout_height="0dp"
-                            android:layout_weight="1"
-                            android:max="20"
-                            android:progress="10" />
-
-                        <soko.ekibun.stitch.RangeSeekbar
-                            android:id="@+id/seek_yrange"
-                            android:layout_width="match_parent"
-                            android:layout_height="0dp"
-                            android:layout_weight="1"
-                            android:max="20"
-                            android:progress="10" />
-
-                        <soko.ekibun.stitch.RangeSeekbar
-                            android:id="@+id/seek_rotate"
-                            android:layout_width="match_parent"
-                            android:layout_height="0dp"
-                            android:layout_weight="1"
-                            android:max="20"
-                            android:progress="10" />
-
-                        <soko.ekibun.stitch.RangeSeekbar
-                            android:id="@+id/seek_scale"
-                            android:layout_width="match_parent"
-                            android:layout_height="0dp"
-                            android:layout_weight="1"
-                            android:max="20"
-                            android:progress="10" />
-                    </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="4dp"
+                        android:padding="8dp"
+                        android:text="@string/label_scale" />
                 </LinearLayout>
-            </ScrollView>
 
-            <LinearLayout
-                android:id="@+id/panel2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/opaque"
-                android:gravity="center"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/menu_import"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="8dp"
-                    android:layout_marginStart="8dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:padding="8dp"
-                    android:text="@string/menu_import"
-                    android:textColor="?android:attr/textColorPrimary" />
-
-                <TextView
-                    android:id="@+id/menu_capture"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="8dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:padding="8dp"
-                    android:text="@string/menu_capture"
-                    android:textColor="?android:attr/textColorPrimary" />
-
-                <View
-                    android:layout_width="1dp"
-                    android:layout_height="16dp"
-                    android:background="@color/opaque" />
-
-                <TextView
-                    android:id="@+id/menu_undo"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="8dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:padding="8dp"
-                    android:text="@string/menu_undo"
-                    android:textColor="?android:attr/textColorPrimary" />
-
-                <View
+                <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_weight="1" />
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/menu_share"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:padding="8dp"
-                    android:text="@string/menu_share"
-                    android:textColor="@color/colorPrimary" />
+                    <soko.ekibun.stitch.RangeSeekbar
+                        android:id="@+id/seek_x"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        tools:ignore="NestedWeights" />
 
-                <TextView
-                    android:id="@+id/menu_save"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:padding="8dp"
-                    android:text="@string/menu_save"
-                    android:textColor="@color/colorPrimary" />
+                    <soko.ekibun.stitch.RangeSeekbar
+                        android:id="@+id/seek_y"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1" />
+
+                    <soko.ekibun.stitch.RangeSeekbar
+                        android:id="@+id/seek_trim"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:max="20"
+                        android:progress="10" />
+
+                    <soko.ekibun.stitch.RangeSeekbar
+                        android:id="@+id/seek_xrange"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:max="20"
+                        android:progress="10" />
+
+                    <soko.ekibun.stitch.RangeSeekbar
+                        android:id="@+id/seek_yrange"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:max="20"
+                        android:progress="10" />
+
+                    <soko.ekibun.stitch.RangeSeekbar
+                        android:id="@+id/seek_rotate"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:max="20"
+                        android:progress="10" />
+
+                    <soko.ekibun.stitch.RangeSeekbar
+                        android:id="@+id/seek_scale"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:max="20"
+                        android:progress="10" />
+                </LinearLayout>
             </LinearLayout>
+        </ScrollView>
+
+        <LinearLayout
+            android:id="@+id/panel2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/opaque"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/menu_import"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="8dp"
+                android:layout_marginStart="8dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:text="@string/menu_import"
+                android:textColor="?android:attr/textColorPrimary" />
+
+            <TextView
+                android:id="@+id/menu_capture"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="8dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:text="@string/menu_capture"
+                android:textColor="?android:attr/textColorPrimary" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="16dp"
+                android:background="@color/opaque" />
+
+            <TextView
+                android:id="@+id/menu_undo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="8dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:text="@string/menu_undo"
+                android:textColor="?android:attr/textColorPrimary" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/menu_share"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="8dp"
+                android:layout_marginEnd="8dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:text="@string/menu_share"
+                android:textColor="@color/colorPrimary" />
+
+            <TextView
+                android:id="@+id/menu_save"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="8dp"
+                android:layout_marginEnd="8dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:text="@string/menu_save"
+                android:textColor="@color/colorPrimary" />
         </LinearLayout>
     </LinearLayout>
-</FrameLayout>
+</LinearLayout>

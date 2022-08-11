@@ -8,7 +8,7 @@
     <string name="please_select_swap">请选中两张图片</string>
 
     <string name="tile_label">截图拼贴</string>
-    <string name="notify_text">点按通知以取消 / 共 %d 张图片</string>
+    <string name="notify_text">点按通知以结束 / 共 %d 张图片</string>
     <string name="alert_delete">确认删除 %d 张图片？</string>
     <string name="alert_stitching">拼接中…</string>
     <string name="alert_computing">计算中（%d/%d）…</string>
@@ -112,7 +112,7 @@
     <string name="label_yrange">纵向范围</string>
     <string name="menu_undo">撤销</string>
     <string name="import_from_gallery">从相册导入</string>
-    <string name="import_from_capture">捕捉屏幕截图</string>
+    <string name="import_from_capture">屏幕截图</string>
     <string name="menu_about">关于</string>
     <string name="label_rotate">旋转角度</string>
     <string name="menu_find_homography">特征匹配</string>
@@ -120,4 +120,5 @@
     <string name="menu_find_homography_diff">特征匹配(去重)</string>
     <string name="menu_phase_correlate_diff">相位相关(去重)</string>
     <string name="label_scale">缩放</string>
+    <string name="clear_history">清空历史记录</string>
 </resources>

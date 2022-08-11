@@ -1,18 +1,213 @@
 package soko.ekibun.stitch
 
-import android.graphics.Bitmap
-import android.graphics.LinearGradient
-import android.graphics.Rect
+import android.graphics.*
 import android.util.Log
 import androidx.core.graphics.applyCanvas
-import java.util.concurrent.atomic.AtomicInteger
+import androidx.core.graphics.withRotation
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import java.io.IOException
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
+import java.io.Serializable
 import kotlin.math.*
 
 object Stitch {
-  private val keyIndex = AtomicInteger(0)
+
+  data class StitchProject(
+    val projectKey: String
+  ) {
+    val file by lazy {
+      App.getProjectFile(projectKey)
+    }
+    val stitchInfo by lazy {
+      val list = mutableListOf<Stitch.StitchInfo>()
+      runBlocking(App.dispatcherIO) {
+        if (file.exists()) try {
+          val ins = ObjectInputStream(file.inputStream())
+          val size = ins.readInt()
+          for (i in 0 until size) {
+            list.add(ins.readObject() as Stitch.StitchInfo)
+          }
+          ins.close()
+        } catch (e: IOException) {
+          e.printStackTrace()
+        }
+      }
+      list
+    }
+
+    private val stitchInfoBak by lazy { mutableListOf<Stitch.StitchInfo>() }
+    fun updateUndo() {
+      stitchInfoBak.clear()
+      stitchInfoBak.addAll(stitchInfo.map {
+        it.clone()
+      })
+      MainScope().launch(App.dispatcherIO) {
+        if (!file.exists()) {
+          if (stitchInfo.isNotEmpty()) file.parentFile?.mkdirs()
+          else return@launch
+        }
+        val os = ObjectOutputStream(file.outputStream())
+        val size = stitchInfo.size
+        os.writeInt(size)
+        for (i in 0 until size) {
+          os.writeObject(stitchInfo[i])
+        }
+        os.close()
+      }
+    }
+
+    fun undo() {
+      val last = stitchInfo.map { it }
+      stitchInfo.clear()
+      stitchInfo.addAll(stitchInfoBak.map {
+        it.clone()
+      })
+      stitchInfoBak.clear()
+      stitchInfoBak.addAll(last)
+    }
+
+    fun updateInfo(): Rect {
+      var cx = 0f
+      var cy = 0f
+      var rot = 0f
+      var scale = 1f
+      var lastPoints = listOf<PointF>()
+      val bound = Rect(
+        Int.MAX_VALUE, Int.MAX_VALUE, Int.MIN_VALUE, Int.MIN_VALUE
+      )
+      var cos = 1f
+      var sin = 0f
+      stitchInfo.forEachIndexed { i, it ->
+        var dx = (it.dx * cos - it.dy * sin) * scale
+        var dy = (it.dy * cos + it.dx * sin) * scale
+        cx = if (i == 0) 0f else cx + dx
+        cy = if (i == 0) 0f else cy + dy
+        rot += it.drot
+        scale *= it.dscale
+        it.rot = rot
+        it.scale = scale
+        it.cx = cx
+        it.cy = cy
+
+        cos = cos(it.rot * Math.PI / 180).toFloat()
+        sin = sin(it.rot * Math.PI / 180).toFloat()
+        val l = it.width * (it.xa - 0.5f) * it.scale
+        val t = it.height * (it.ya - 0.5f) * it.scale
+        val r = it.width * (it.xb - 0.5f) * it.scale
+        val b = it.height * (it.yb - 0.5f) * it.scale
+        val points = listOf(
+          PointF(cx + l * cos - t * sin, cy + l * sin + t * cos),
+          PointF(cx + l * cos - b * sin, cy + l * sin + b * cos),
+          PointF(cx + r * cos - t * sin, cy + r * sin + t * cos),
+          PointF(cx + r * cos - b * sin, cy + r * sin + b * cos)
+        )
+        if (it.dx == 0f && it.dy == 0f) {
+          dx = -sin
+          dy = cos
+        }
+        val mag2 = dx * dx + dy * dy
+        var minV = Float.MAX_VALUE
+        var maxV = Float.MIN_VALUE
+        for (p in points) {
+          val prod = (cx - p.x) * dx + (cy - p.y) * dy
+          minV = min(minV, prod)
+          maxV = max(maxV, prod)
+
+          bound.left = min(bound.left, p.x.roundToInt())
+          bound.top = min(bound.top, p.y.roundToInt())
+          bound.right = max(bound.right, p.x.roundToInt())
+          bound.bottom = max(bound.bottom, p.y.roundToInt())
+        }
+        var minO = Float.MAX_VALUE
+        var maxO = Float.MIN_VALUE
+        for (p in lastPoints) {
+          val prod = (cx - p.x) * dx + (cy - p.y) * dy
+          minO = min(minO, prod)
+          maxO = max(maxO, prod)
+        }
+        lastPoints = points
+
+        minV = max(minV, minO) / mag2
+        maxV = min(maxV, maxO) / mag2
+
+        val va = maxV - (maxV - minV) * it.a
+        val vb = maxV - (maxV - minV) * it.b * (1 + 1e-5f)
+
+        it.shader = LinearGradient(
+          cx - (dx * cos + dy * sin) * va,
+          cy - (-dx * sin + dy * cos) * va,
+          cx - (dx * cos + dy * sin) * vb,
+          cy - (-dx * sin + dy * cos) * vb,
+          Color.TRANSPARENT,
+          Color.WHITE,
+          Shader.TileMode.CLAMP
+        )
+      }
+      return bound
+    }
+
+    val selected by lazy {
+      mutableSetOf<String>()
+    }
+
+    fun drawToCanvas(
+      c: Canvas,
+      drawMask: Boolean,
+      maskColor: Int,
+      overPaint: Paint,
+      gradientPaint: Paint,
+    ) {
+      val srcRange = Rect()
+      val dstRange = RectF()
+      val path = Path()
+      for (i in 0 until stitchInfo.size) {
+        val it = stitchInfo.getOrNull(i) ?: continue
+        srcRange.set(
+          (it.width * it.xa).roundToInt(),
+          (it.height * it.ya).roundToInt(),
+          (it.width * it.xb).roundToInt(),
+          (it.height * it.yb).roundToInt()
+        )
+        dstRange.set(
+          it.cx + (srcRange.left - it.width / 2f) * it.scale,
+          it.cy + (srcRange.top - it.height / 2f) * it.scale,
+          it.cx + (srcRange.right - it.width / 2f) * it.scale,
+          it.cy + (srcRange.bottom - it.height / 2f) * it.scale,
+        )
+
+        if (dstRange.left > c.clipBounds.right ||
+          dstRange.right < c.clipBounds.left ||
+          dstRange.top > c.clipBounds.bottom ||
+          dstRange.bottom < c.clipBounds.top
+        ) continue
+        val bmp = App.bitmapCache.getBitmap(it.imageKey) ?: return
+        c.withRotation(it.rot, it.cx, it.cy) {
+          path.reset()
+          path.addRect(dstRange, Path.Direction.CW)
+          it.shader?.let { shader ->
+            try {
+              gradientPaint.shader = shader
+              c.drawRect(dstRange, gradientPaint)
+            } catch (e: Exception) {
+              e.printStackTrace()
+            }
+          }
+          if (drawMask && selected.contains(it.imageKey)) {
+            overPaint.color = maskColor
+            c.drawRect(dstRange, overPaint)
+          }
+          overPaint.color = Color.BLACK
+          c.drawBitmap(bmp, srcRange, dstRange, overPaint)
+        }
+      }
+    }
+  }
 
   data class StitchInfo(
-    val image: String,
+    val imageKey: String,
     val width: Int,
     val height: Int,
     var dx: Float = 0f,
@@ -25,17 +220,25 @@ object Stitch {
     var xb: Float = 1f, // [xa, 1]
     var ya: Float = 0f, // [0, yb]
     var yb: Float = 1f, // [ya, 1]
-    val key: Int = keyIndex.getAndIncrement()
-  ) {
+  ) : Serializable {
+    @Transient
     var cx: Float = 0f
+
+    @Transient
     var cy: Float = 0f
+
+    @Transient
     var rot: Float = 0f
+
+    @Transient
     var scale: Float = 1f
+
+    @Transient
     var shader: LinearGradient? = null
 
     fun clone(): StitchInfo {
       return StitchInfo(
-        image, width, height, dx, dy, drot, dscale, a, b, xa, xb, ya, yb, key
+        imageKey, width, height, dx, dy, drot, dscale, a, b, xa, xb, ya, yb
       )
     }
   }
@@ -64,7 +267,7 @@ object Stitch {
     val right = (img0.xb * img0.width).roundToInt()
     val bottom = (img0.yb * img0.height).roundToInt()
     if (left >= right || top >= bottom) return null
-    return App.bitmapCache.getBitmap(img0.image)?.let {
+    return App.bitmapCache.getBitmap(img0.imageKey)?.let {
       if (left == 0 && right == img0.width && top == 0 && bottom == img0.height) it
       else Bitmap.createBitmap(it, left, top, right - left, bottom - top)
     }
@@ -78,7 +281,7 @@ object Stitch {
     if (left >= right || top >= bottom) return null
     val width = (img1.xb * img1.width).roundToInt() - (img1.xa * img1.width).roundToInt()
     val height = (img1.yb * img1.height).roundToInt() - (img1.ya * img1.height).roundToInt()
-    return App.bitmapCache.getBitmap(img0.image)?.let {
+    return App.bitmapCache.getBitmap(img0.imageKey)?.let {
       if (left == 0 && right == img0.width
         && top == 0 && bottom == img0.height
         && img0.width == width && img0.height == height

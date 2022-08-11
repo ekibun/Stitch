@@ -2,41 +2,66 @@ package soko.ekibun.stitch
 
 import android.app.Application
 import android.preference.PreferenceManager
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.runBlocking
+import java.io.File
+import java.util.concurrent.Executors
 
 class App : Application() {
   val sp by lazy { PreferenceManager.getDefaultSharedPreferences(this) }
   private val bitmapCache by lazy { BitmapCache(this) }
-    val stitchInfo by lazy { mutableListOf<Stitch.StitchInfo>() }
-    val stitchInfo2 by lazy { mutableListOf<Stitch.StitchInfo>() }
+  private val projects by lazy { HashMap<String, Stitch.StitchProject>() }
 
-    override fun onCreate() {
-        super.onCreate()
-        bitmapCache.clear()
-        app = this
+  override fun onCreate() {
+    super.onCreate()
+    app = this
+  }
+
+  val dataDirPath: String by lazy {
+    dataDir.path + File.separator + "Project"
+  }
+
+  companion object {
+    private lateinit var app: App
+    val bitmapCache get() = app.bitmapCache
+    var captureProject: String? = null
+    val sp get() = app.sp
+    val dispatcherIO = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+
+    fun getProject(projectKey: String): Stitch.StitchProject {
+      return app.projects.getOrPut(projectKey) {
+        Stitch.StitchProject(projectKey)
+      }
     }
 
-    companion object {
-        private lateinit var app: App
-        val bitmapCache get() = app.bitmapCache
-        val stitchInfo get() = app.stitchInfo
-      var foreground = false
-      val sp get() = app.sp
-
-        fun updateUndo() {
-            app.stitchInfo2.clear()
-            app.stitchInfo2.addAll(app.stitchInfo.map {
-                it.clone()
-            })
-        }
-
-        fun undo() {
-            val last = app.stitchInfo.map { it }
-            app.stitchInfo.clear()
-            app.stitchInfo.addAll(app.stitchInfo2.map {
-                it.clone()
-            })
-            app.stitchInfo2.clear()
-            app.stitchInfo2.addAll(last)
-        }
+    fun getProjects(): Array<File> {
+      val file = File(app.dataDirPath)
+      return file.listFiles { f, _ -> f.isDirectory } ?: emptyArray()
     }
+
+    fun getProjectFile(projectKey: String): File {
+      return File(app.dataDirPath + File.separator + projectKey + File.separator + ".project")
+    }
+
+    fun newProject(): String {
+      val projectKey = System.currentTimeMillis().toString(16)
+      return projectKey
+    }
+
+    fun clearProjects() {
+      val file = File(app.dataDirPath)
+      runBlocking(dispatcherIO) {
+        file.deleteRecursively()
+      }
+      app.projects.clear()
+    }
+
+    fun deleteProject(projectKey: String) {
+      val file = File(app.dataDirPath, projectKey)
+      app.projects.remove(projectKey)
+      runBlocking(dispatcherIO) {
+        file.deleteRecursively()
+      }
+    }
+  }
 }
