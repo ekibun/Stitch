@@ -6,6 +6,7 @@
         <item name="android:colorPrimary">@color/colorPrimary</item>
         <item name="android:colorPrimaryDark">@color/colorPrimary</item>
         <item name="android:colorAccent">@color/colorPrimary</item>
+        <item name="android:colorControlActivated">@color/colorPrimary</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:alertDialogTheme">@style/Theme.Stitch.Dialog</item>
         <item name="android:navigationBarColor">?android:colorBackground</item>

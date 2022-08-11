@@ -31,12 +31,12 @@ class MainActivity : Activity() {
 
   private fun getVersion(context: Context): String {
     var versionName = ""
-    var versionCode = 0
+    var versionCode = 0L
     var isApkInDebug = false
     try {
       val pi = context.packageManager.getPackageInfo(context.packageName, 0)
       versionName = pi.versionName
-      versionCode = pi.versionCode
+      versionCode = pi.longVersionCode
       val info = context.applicationInfo
       isApkInDebug = info.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
     } catch (e: PackageManager.NameNotFoundException) {
@@ -56,7 +56,7 @@ class MainActivity : Activity() {
     val policyVersion = getString(R.string.policy_version)
     if (App.sp.getString("policy_version", "") != policyVersion) {
       val policyView = TextView(this)
-      policyView.text = Html.fromHtml(getString(R.string.policy))
+      policyView.text = Html.fromHtml(getString(R.string.policy, Html.FROM_HTML_MODE_LEGACY))
       val padding = (resources.displayMetrics.density * 24).roundToInt()
       policyView.setPaddingRelative(padding, padding, padding, 0)
       policyView.movementMethod = LinkMovementMethod.getInstance()
@@ -73,7 +73,7 @@ class MainActivity : Activity() {
     projectList.adapter = adapter
 
     val str = getString(R.string.guidance_info, getVersion(this))
-    headerView.findViewById<TextView>(R.id.guidance_info).text = Html.fromHtml(str)
+    headerView.findViewById<TextView>(R.id.guidance_info).text = Html.fromHtml(str, Html.FROM_HTML_MODE_LEGACY)
     headerView.findViewById<TextView>(R.id.menu_privacy).setOnClickListener {
       try {
         val intent = Intent(Intent.ACTION_VIEW)

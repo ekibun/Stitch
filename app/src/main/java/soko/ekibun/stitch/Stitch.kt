@@ -22,13 +22,13 @@ object Stitch {
       App.getProjectFile(projectKey)
     }
     val stitchInfo by lazy {
-      val list = mutableListOf<Stitch.StitchInfo>()
+      val list = mutableListOf<StitchInfo>()
       runBlocking(App.dispatcherIO) {
         if (file.exists()) try {
           val ins = ObjectInputStream(file.inputStream())
           val size = ins.readInt()
           for (i in 0 until size) {
-            list.add(ins.readObject() as Stitch.StitchInfo)
+            list.add(ins.readObject() as StitchInfo)
           }
           ins.close()
         } catch (e: IOException) {
@@ -38,12 +38,13 @@ object Stitch {
       list
     }
 
-    private val stitchInfoBak by lazy { mutableListOf<Stitch.StitchInfo>() }
+    private val stitchInfoBak by lazy { mutableListOf<StitchInfo>() }
     fun updateUndo() {
       stitchInfoBak.clear()
       stitchInfoBak.addAll(stitchInfo.map {
         it.clone()
       })
+      @Suppress("BlockingMethodInNonBlockingContext")
       MainScope().launch(App.dispatcherIO) {
         if (!file.exists()) {
           if (stitchInfo.isNotEmpty()) file.parentFile?.mkdirs()
@@ -298,72 +299,52 @@ object Stitch {
     }
   }
 
-  enum class CombineMethod {
-    PHASE_CORRELATE, FIND_HOMOGRAPHY, PHASE_CORRELATE_DIFF, FIND_HOMOGRAPHY_DIFF,
-  }
-
-  fun combine(method: CombineMethod, img0: StitchInfo, img1: StitchInfo): StitchInfo? {
+  fun combine(homo: Boolean, diff: Boolean, img0: StitchInfo, img1: StitchInfo): StitchInfo? {
     val data = DoubleArray(9)
-    return when (method) {
-      CombineMethod.PHASE_CORRELATE, CombineMethod.PHASE_CORRELATE_DIFF -> {
-        val bmp0 = getClipBitmap(img0, img1) ?: return null
-        val bmp1 = getClipBitmap(img1, img0) ?: return null
-        if (!phaseCorrelateNative(
-            bmp0,
-            bmp1,
-            method == CombineMethod.PHASE_CORRELATE_DIFF,
-            data
-          )
-        ) return null
-        img1.clone().also {
-          val dx = (data[2] + (0.5 - img1.xa) * img1.width -
-              (0.5 - img0.xa) * img0.width).toFloat()
-          val dy = (data[5] + (0.5 - img0.ya) * img1.height -
-              (0.5 - img0.ya) * img0.height).toFloat()
-          if ((dx != 0f || dy != 0f) &&
-            abs(dx) < (img1.width + img0.width) / 2 &&
-            abs(dy) < (img1.height + img0.height) / 2
-          ) {
-            it.dx = dx
-            it.dy = dy
-            it.drot = 0f
-            it.dscale = 1f
-          }
+    return if (homo) {
+      val bmp0 = getClipBitmap(img0) ?: return null
+      val bmp1 = getClipBitmap(img1) ?: return null
+      if (!findHomographyNative(bmp0, bmp1, diff, data)) return null
+      img1.clone().also {
+        val cx = (0.5 - img1.xa) * img1.width
+        val cy = (0.5 - img1.ya) * img1.height
+        val ps = data[6] * cx + data[7] * cy + data[8]
+        Log.v("HOMO", data.toList().toString())
+        val dx = ((data[0] * cx + data[1] * cy + data[2]) / ps -
+            (0.5 - img0.xa) * img0.width).toFloat()
+        val dy = ((data[3] * cx + data[4] * cy + data[5]) / ps -
+            (0.5 - img0.ya) * img0.height).toFloat()
+        val scale = sqrt(abs(data[0] * data[4] - data[1] * data[3]))
+        val rot = atan2((data[3] - data[1]) / 2, (data[0] + data[4]) / 2) * 180 / Math.PI
+        if ((dx != 0f || dy != 0f) &&
+          abs(dx) < (img1.width + img0.width) / 2 &&
+          abs(dy) < (img1.height + img0.height) / 2
+        ) {
+          it.dx = dx
+          it.dy = dy
+          it.drot = rot.toFloat()
+          it.dscale = scale.toFloat()
         }
       }
-      CombineMethod.FIND_HOMOGRAPHY, CombineMethod.FIND_HOMOGRAPHY_DIFF -> {
-        val bmp0 = getClipBitmap(img0) ?: return null
-        val bmp1 = getClipBitmap(img1) ?: return null
-        if (!findHomographyNative(
-            bmp0,
-            bmp1,
-            method == CombineMethod.FIND_HOMOGRAPHY_DIFF,
-            data
-          )
-        ) return null
-        img1.clone().also {
-          val cx = (0.5 - img1.xa) * img1.width
-          val cy = (0.5 - img1.ya) * img1.height
-          val ps = data[6] * cx + data[7] * cy + data[8]
-          Log.v("HOMO", data.toList().toString())
-          val dx = ((data[0] * cx + data[1] * cy + data[2]) / ps -
-              (0.5 - img0.xa) * img0.width).toFloat()
-          val dy = ((data[3] * cx + data[4] * cy + data[5]) / ps -
-              (0.5 - img0.ya) * img0.height).toFloat()
-          val scale = sqrt(abs(data[0] * data[4] - data[1] * data[3]))
-          val rot = atan2((data[3] - data[1]) / 2, (data[0] + data[4]) / 2) * 180 / Math.PI
-          if ((dx != 0f || dy != 0f) &&
-            abs(dx) < (img1.width + img0.width) / 2 &&
-            abs(dy) < (img1.height + img0.height) / 2
-          ) {
-            it.dx = dx
-            it.dy = dy
-            it.drot = rot.toFloat()
-            it.dscale = scale.toFloat()
-          }
+    } else {
+      val bmp0 = getClipBitmap(img0, img1) ?: return null
+      val bmp1 = getClipBitmap(img1, img0) ?: return null
+      if (!phaseCorrelateNative(bmp0, bmp1, diff, data)) return null
+      img1.clone().also {
+        val dx = (data[2] + (0.5 - img1.xa) * img1.width -
+            (0.5 - img0.xa) * img0.width).toFloat()
+        val dy = (data[5] + (0.5 - img0.ya) * img1.height -
+            (0.5 - img0.ya) * img0.height).toFloat()
+        if ((dx != 0f || dy != 0f) &&
+          abs(dx) < (img1.width + img0.width) / 2 &&
+          abs(dy) < (img1.height + img0.height) / 2
+        ) {
+          it.dx = dx
+          it.dy = dy
+          it.drot = 0f
+          it.dscale = 1f
         }
       }
     }
-
   }
 }

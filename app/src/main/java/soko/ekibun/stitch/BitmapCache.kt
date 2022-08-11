@@ -6,7 +6,7 @@ import android.graphics.BitmapFactory
 import android.util.LruCache
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
@@ -65,7 +65,7 @@ class BitmapCache(var app: App) {
       return saveBitmap(project, bmp, saveToMemory)
     }
     lastKey = key
-    GlobalScope.launch(Dispatchers.IO) {
+    MainScope().launch(Dispatchers.IO) {
       try {
         if (saveToMemory) addBitmapToMemoryCache(key, bmp)
         val file = File(app.dataDirPath, key)

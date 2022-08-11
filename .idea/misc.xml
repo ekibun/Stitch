@@ -5,13 +5,25 @@
       <map>
         <entry key="..\:/Project/Stitch/app/src/main/res/drawable/bg_fab.xml" value="0.378125" />
         <entry key="..\:/Project/Stitch/app/src/main/res/drawable/bg_rect.xml" value="0.378125" />
+        <entry key="..\:/Project/Stitch/app/src/main/res/drawable/ic_arrow_back.xml" value="0.256" />
+        <entry key="..\:/Project/Stitch/app/src/main/res/drawable/ic_baseline_check_circle_24.xml" value="0.1865" />
+        <entry key="..\:/Project/Stitch/app/src/main/res/drawable/ic_baseline_done_all_24.xml" value="0.195" />
+        <entry key="..\:/Project/Stitch/app/src/main/res/drawable/ic_check_all.xml" value="0.195" />
+        <entry key="..\:/Project/Stitch/app/src/main/res/drawable/ic_check_clear.xml" value="0.195" />
+        <entry key="..\:/Project/Stitch/app/src/main/res/drawable/ic_edit.xml" value="0.348" />
         <entry key="..\:/Project/Stitch/app/src/main/res/drawable/ic_gallery.xml" value="0.378125" />
+        <entry key="..\:/Project/Stitch/app/src/main/res/drawable/ic_image_add.xml" value="0.193" />
+        <entry key="..\:/Project/Stitch/app/src/main/res/drawable/ic_outline_library_add_check_24.xml" value="0.1865" />
+        <entry key="..\:/Project/Stitch/app/src/main/res/drawable/ic_shuffle.xml" value="0.2615" />
         <entry key="..\:/Project/Stitch/app/src/main/res/drawable/ic_tile.xml" value="0.378125" />
-        <entry key="..\:/Project/Stitch/app/src/main/res/layout/activity_edit.xml" value="0.1" />
+        <entry key="..\:/Project/Stitch/app/src/main/res/layout-land/activity_edit.xml" value="0.32342342342342345" />
+        <entry key="..\:/Project/Stitch/app/src/main/res/layout/activity_edit.xml" value="0.20338541666666668" />
         <entry key="..\:/Project/Stitch/app/src/main/res/layout/activity_main.xml" value="0.20208333333333334" />
+        <entry key="..\:/Project/Stitch/app/src/main/res/layout/edit_panel.xml" value="0.5" />
         <entry key="..\:/Project/Stitch/app/src/main/res/layout/float_button.xml" value="0.33" />
         <entry key="..\:/Project/Stitch/app/src/main/res/layout/list_header.xml" value="0.21822916666666667" />
         <entry key="..\:/Project/Stitch/app/src/main/res/layout/list_project.xml" value="0.31574074074074077" />
+        <entry key="..\:/Project/Stitch/app/src/main/res/menu/menu_import.xml" value="0.2056434373663959" />
         <entry key="..\:/Project/Stitch/app/src/main/res/menu/menu_stitch.xml" value="0.2578125" />
       </map>
     </option>

@@ -17,12 +17,14 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.PopupMenu
-import android.widget.TextView
-import android.widget.Toast
+import android.view.inputmethod.InputMethodManager
+import android.widget.*
+import androidx.core.widget.doAfterTextChanged
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import kotlin.math.pow
+import kotlin.math.roundToInt
 
 class EditActivity : Activity() {
   companion object {
@@ -42,13 +44,30 @@ class EditActivity : Activity() {
 
   private val editView by lazy { findViewById<EditView>(R.id.edit) }
   private val selectInfo by lazy { findViewById<TextView>(R.id.select_info) }
-  private val seekDx by lazy { findViewById<RangeSeekbar>(R.id.seek_x) }
-  private val seekDy by lazy { findViewById<RangeSeekbar>(R.id.seek_y) }
-  private val seekTrim by lazy { findViewById<RangeSeekbar>(R.id.seek_trim) }
-  private val seekXRange by lazy { findViewById<RangeSeekbar>(R.id.seek_xrange) }
-  private val seekYRange by lazy { findViewById<RangeSeekbar>(R.id.seek_yrange) }
-  private val seekRotate by lazy { findViewById<RangeSeekbar>(R.id.seek_rotate) }
-  private val seekScale by lazy { findViewById<RangeSeekbar>(R.id.seek_scale) }
+  private val seekbar by lazy { findViewById<RangeSeekbar>(R.id.menu_seekbar) }
+  private val numberView by lazy { findViewById<View>(R.id.menu_number_picker) }
+  private val numberDec by lazy { findViewById<View>(R.id.menu_decrement) }
+  private val numberInc by lazy { findViewById<View>(R.id.menu_increment) }
+  private val numberA by lazy { findViewById<EditText>(R.id.menu_edit_a) }
+  private val numberB by lazy { findViewById<EditText>(R.id.menu_edit_b) }
+  private val numberDiv by lazy { findViewById<View>(R.id.menu_edit_divider) }
+  private val dropdown by lazy { findViewById<TextView>(R.id.menu_dropdown) }
+
+  data class SelectItemInfo(
+    val roundOf: Int,
+    val showB: Boolean
+  )
+
+  private val selectItems = mapOf(
+    R.string.label_dx to (0 to false),
+    R.string.label_dy to (0 to false),
+    R.string.label_trim to (2 to true),
+    R.string.label_xrange to (0 to true),
+    R.string.label_yrange to (0 to true),
+    R.string.label_scale to (2 to false),
+    R.string.label_rotate to (0 to false)
+  )
+  private var selectIndex = R.string.label_dy
 
   private val projectKey by lazy { intent.extras!!.getString("project")!! }
   val project by lazy { App.getProject(projectKey) }
@@ -59,30 +78,162 @@ class EditActivity : Activity() {
     editView.postInvalidate()
   }
 
+  private fun updateNumberView(a: Float? = null, b: Float? = null) {
+    val (roundOf, showB) = selectItems[selectIndex] ?: (0 to false)
+    numberB.visibility = if (showB) View.VISIBLE else View.GONE
+    numberDiv.visibility = if (showB) View.VISIBLE else View.GONE
+    numberDec.visibility = if (showB) View.GONE else View.VISIBLE
+    numberInc.visibility = if (showB) View.GONE else View.VISIBLE
+    if (roundOf == 0) {
+      if (a != null) numberA.setText(a.roundToInt().toString())
+      if (b != null) numberB.setText(b.roundToInt().toString())
+    }
+    if (a != null) numberA.setText(String.format("%.${roundOf}f", a))
+    if (b != null) numberB.setText(String.format("%.${roundOf}f", b))
+    if (numberA.isFocused) {
+      numberA.clearFocus()
+      (getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(
+        numberA.windowToken,
+        InputMethodManager.HIDE_NOT_ALWAYS
+      )
+    }
+    if (numberB.isFocused) {
+      numberB.clearFocus()
+      (getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(
+        numberB.windowToken,
+        InputMethodManager.HIDE_NOT_ALWAYS
+      )
+    }
+  }
+
+  fun setNumber(a: Float? = null, b: Float? = null, relative: Boolean = false) {
+    val selected = selectedStitchInfo
+    if (selected.isNotEmpty()) selected.forEach {
+      when (selectIndex) {
+        R.string.label_dx -> if (a != null) it.dx = if (relative) (a * 2 - 1) * it.width else a
+        R.string.label_dy -> if (a != null) it.dy = if (relative) (a * 2 - 1) * it.height else a
+        R.string.label_trim -> {
+          if (a != null) it.a = a
+          if (b != null) it.b = b
+        }
+        R.string.label_xrange -> {
+          if (a != null) it.xa = if (!relative && it.width > 0) a / it.width else a
+          if (b != null) it.xb = if (!relative && it.width > 0) b / it.width else b
+        }
+        R.string.label_yrange -> {
+          if (a != null) it.ya = if (!relative && it.height > 0) a / it.height else a
+          if (b != null) it.yb = if (!relative && it.height > 0) b / it.height else b
+        }
+        R.string.label_scale -> if (a != null) it.dscale = if (relative) (a * 2) else a
+        R.string.label_rotate -> if (a != null) it.drot = if (relative) (a * 2 - 1) * 180 else a
+      }
+    }
+  }
+
+  private val selectedStitchInfo
+    get() = when (selectIndex) {
+      R.string.label_dx,
+      R.string.label_dy,
+      R.string.label_trim -> project.stitchInfo.filterIndexed { i, v ->
+        i > 0 && project.selected.contains(v.imageKey)
+      }
+      else -> project.stitchInfo.filter { project.selected.contains(it.imageKey) }
+    }
+
+  private fun updateNumber() {
+    val selected = selectedStitchInfo
+    if (selected.isNotEmpty()) {
+      numberView.visibility = View.VISIBLE
+      when (selectIndex) {
+        R.string.label_dx -> {
+          updateNumberView(selected.map { it.dx }.average().toFloat())
+        }
+        R.string.label_dy -> {
+          updateNumberView(selected.map { it.dy }.average().toFloat())
+        }
+        R.string.label_trim -> {
+          updateNumberView(
+            selected.map { it.a }.average().toFloat(),
+            selected.map { it.b }.average().toFloat()
+          )
+        }
+        R.string.label_xrange -> {
+          updateNumberView(
+            selected.map { it.xa * it.width }.average().toFloat(),
+            selected.map { it.xb * it.width }.average().toFloat()
+          )
+        }
+        R.string.label_yrange -> {
+          updateNumberView(
+            selected.map { it.ya * it.height }.average().toFloat(),
+            selected.map { it.yb * it.height }.average().toFloat()
+          )
+        }
+        R.string.label_scale -> {
+          updateNumberView(selected.map { it.dscale }.average().toFloat())
+        }
+        R.string.label_rotate -> {
+          updateNumberView(selected.map { it.drot }.average().toFloat())
+        }
+      }
+    } else {
+      numberView.visibility = View.GONE
+    }
+  }
+
+  fun updateSeekbar() {
+    val selected = selectedStitchInfo
+    if (selected.isNotEmpty()) {
+      seekbar.isEnabled = true
+      when (selectIndex) {
+        R.string.label_dx -> {
+          seekbar.type = RangeSeekbar.TYPE_CENTER
+          seekbar.a = selected.map { (it.dx / it.width + 1) / 2 }.average().toFloat()
+        }
+        R.string.label_dy -> {
+          seekbar.type = RangeSeekbar.TYPE_CENTER
+          seekbar.a = selected.map { (it.dy / it.height + 1) / 2 }.average().toFloat()
+
+          numberB.visibility = View.VISIBLE
+          numberDiv.visibility = View.GONE
+        }
+        R.string.label_trim -> {
+          seekbar.type = RangeSeekbar.TYPE_GRADIENT
+          seekbar.a = selected.map { it.a }.average().toFloat()
+          seekbar.b = selected.map { it.b }.average().toFloat()
+        }
+        R.string.label_xrange -> {
+          seekbar.type = RangeSeekbar.TYPE_RANGE
+          seekbar.a = selected.map { it.xa }.average().toFloat()
+          seekbar.b = selected.map { it.xb }.average().toFloat()
+        }
+        R.string.label_yrange -> {
+          seekbar.type = RangeSeekbar.TYPE_RANGE
+          seekbar.a = selected.map { it.ya }.average().toFloat()
+          seekbar.b = selected.map { it.yb }.average().toFloat()
+        }
+        R.string.label_scale -> {
+          seekbar.type = RangeSeekbar.TYPE_CENTER
+          seekbar.a = selected.map { it.dscale / 2f }.average().toFloat()
+        }
+        R.string.label_rotate -> {
+          seekbar.type = RangeSeekbar.TYPE_CENTER
+          seekbar.a = selected.map { (it.drot / 360) + 0.5f }.average().toFloat()
+        }
+      }
+      seekbar.invalidate()
+    } else {
+      seekbar.isEnabled = false
+    }
+  }
+
   fun updateSelectInfo() {
+    dropdown.setText(selectIndex)
     invalidateView()
     selectInfo.text =
       getString(R.string.label_select, project.selected.size, project.stitchInfo.size)
-    val selected = project.stitchInfo.filter { project.selected.contains(it.imageKey) }
-    if (selected.isNotEmpty()) {
-      seekDx.a = selected.map { (it.dx / it.width + 1) / 2 }.average().toFloat()
-      seekDy.a = selected.map { (it.dy / it.height + 1) / 2 }.average().toFloat()
-      seekTrim.a = selected.map { it.a }.average().toFloat()
-      seekTrim.b = selected.map { it.b }.average().toFloat()
-      seekXRange.a = selected.map { it.xa }.average().toFloat()
-      seekXRange.b = selected.map { it.xb }.average().toFloat()
-      seekYRange.a = selected.map { it.ya }.average().toFloat()
-      seekYRange.b = selected.map { it.yb }.average().toFloat()
-      seekRotate.a = selected.map { (it.drot / 360) + 0.5f }.average().toFloat()
-      seekScale.a = selected.map { it.dscale / 2f }.average().toFloat()
-      seekDx.invalidate()
-      seekDy.invalidate()
-      seekTrim.invalidate()
-      seekXRange.invalidate()
-      seekYRange.invalidate()
-      seekRotate.invalidate()
-      seekScale.invalidate()
-    }
+    updateSeekbar()
+    updateNumber()
   }
 
   private fun selectAll() {
@@ -131,7 +282,7 @@ class EditActivity : Activity() {
     startActivityForResult(Intent.createChooser(intent, "Stitch"), requesetCode)
   }
 
-  private fun stitch(method: Stitch.CombineMethod) {
+  private fun stitch(homo: Boolean, diff: Boolean) {
     if (project.selected.isEmpty()) {
       Toast.makeText(this, R.string.please_select_image, Toast.LENGTH_SHORT).show()
       return
@@ -140,11 +291,11 @@ class EditActivity : Activity() {
     var done = 0
     progress.setMessage(getString(R.string.alert_computing, done, project.selected.size))
     progress.show()
-    GlobalScope.launch(Dispatchers.IO) {
+    MainScope().launch(Dispatchers.IO) {
       project.updateUndo()
       project.stitchInfo.reduceOrNull { acc, it ->
         if (progress.isShowing && project.selected.contains(it.imageKey)) {
-          Stitch.combine(method, acc, it)?.let { data ->
+          Stitch.combine(homo, diff, acc, it)?.let { data ->
             if (progress.isShowing) {
               it.dx = data.dx
               it.dy = data.dy
@@ -178,7 +329,7 @@ class EditActivity : Activity() {
 
     setContentView(R.layout.activity_edit)
 
-    if (intent.getBooleanExtra("gallery", false) == true) {
+    if (intent.getBooleanExtra("gallery", false)) {
       intent.putExtra("gallery", false)
       importFromGallery(REQUEST_IMPORT_NEW)
       editView.visibility = View.INVISIBLE
@@ -191,23 +342,11 @@ class EditActivity : Activity() {
         windowInsets.systemWindowInsetRight,
         0
       )
-      findViewById<View>(R.id.panel0).setPadding(
+      findViewById<View>(R.id.panel).setPadding(
         windowInsets.systemWindowInsetLeft,
         0,
         windowInsets.systemWindowInsetRight,
         0
-      )
-      findViewById<View>(R.id.panel1).setPadding(
-        windowInsets.systemWindowInsetLeft,
-        0,
-        windowInsets.systemWindowInsetRight,
-        0
-      )
-      findViewById<View>(R.id.panel2).setPadding(
-        windowInsets.systemWindowInsetLeft,
-        0,
-        windowInsets.systemWindowInsetRight,
-        windowInsets.systemWindowInsetBottom
       )
       windowInsets.consumeSystemWindowInsets()
     }
@@ -217,14 +356,35 @@ class EditActivity : Activity() {
       project.selected.clear()
       updateSelectInfo()
     }
-    findViewById<View>(R.id.menu_import).setOnClickListener {
-      importFromGallery()
+
+    dropdown.setOnClickListener { view ->
+      val popupMenu = PopupMenu(this, view)
+      selectItems.forEach {
+        popupMenu.menu.add(0, it.key, 0, it.key)
+        popupMenu.show()
+        popupMenu.setOnMenuItemClickListener { item ->
+          selectIndex = item.itemId
+          updateSelectInfo()
+          true
+        }
+      }
     }
-    findViewById<View>(R.id.menu_capture).setOnClickListener {
-      this.startActivityForResult(
-        StartCaptureActivity.startActivityIntent(this, projectKey),
-        REQUEST_CAPTURE
-      )
+
+    findViewById<View>(R.id.menu_import).setOnClickListener {
+      val popupMenu = PopupMenu(this, it)
+      popupMenu.menu.add(0, 1, 0, R.string.import_from_gallery)
+      popupMenu.menu.add(0, 2, 0, R.string.import_from_capture)
+      popupMenu.show()
+      popupMenu.setOnMenuItemClickListener { item ->
+        when (item.itemId) {
+          1 -> importFromGallery()
+          2 -> this.startActivityForResult(
+            StartCaptureActivity.startActivityIntent(this, projectKey),
+            REQUEST_CAPTURE
+          )
+        }
+        true
+      }
     }
     findViewById<View>(R.id.menu_select_all).setOnClickListener {
       selectAll()
@@ -278,7 +438,7 @@ class EditActivity : Activity() {
         return@setOnClickListener
       }
       val progress = ProgressDialog.show(this, null, getString(R.string.alert_stitching))
-      GlobalScope.launch(Dispatchers.IO) {
+      MainScope().launch(Dispatchers.IO) {
         val intent = try {
           val bitmap = editView.drawToBitmap()
           App.bitmapCache.saveToCache(bitmap, "Stitch$projectKey.png")
@@ -311,85 +471,45 @@ class EditActivity : Activity() {
       saveIntent.putExtra(Intent.EXTRA_TITLE, "Stitch$projectKey.png")
       startActivityForResult(saveIntent, REQUEST_SAVE)
     }
-    findViewById<View>(R.id.menu_auto_stitch).setOnLongClickListener {
-      val popupMenu = PopupMenu(this, it)
-      popupMenu.menuInflater.inflate(R.menu.menu_stitch, popupMenu.menu)
-      popupMenu.show()
-      popupMenu.setOnMenuItemClickListener { item ->
-        when (item.itemId) {
-          R.id.menu_find_homography -> stitch(Stitch.CombineMethod.FIND_HOMOGRAPHY)
-          R.id.menu_phase_correlate -> stitch(Stitch.CombineMethod.PHASE_CORRELATE)
-          R.id.menu_find_homography_diff -> stitch(Stitch.CombineMethod.FIND_HOMOGRAPHY_DIFF)
-          R.id.menu_phase_correlate_diff -> stitch(Stitch.CombineMethod.PHASE_CORRELATE_DIFF)
-        }
-        true
-      }
-      true
-    }
     findViewById<View>(R.id.menu_auto_stitch).setOnClickListener {
-      stitch(Stitch.CombineMethod.PHASE_CORRELATE_DIFF)
+      stitch(
+        findViewById<Switch>(R.id.switch_homography).isChecked,
+        findViewById<Switch>(R.id.switch_diff).isChecked
+      )
     }
-
-    seekDx.type = RangeSeekbar.TYPE_CENTER
-    seekDx.a = 0.5f
-    seekDx.onRangeChange = { a, _ ->
-      project.stitchInfo.forEach {
-        if (project.selected.contains(it.imageKey)) it.dx = (a * 2 - 1) * it.width
-      }
+    numberA.doAfterTextChanged {
+      if (!numberA.isFocused) return@doAfterTextChanged
+      val newNum = it?.toString()?.toFloatOrNull() ?: return@doAfterTextChanged
+      setNumber(newNum)
+      updateSeekbar()
       invalidateView()
     }
-    seekDy.type = RangeSeekbar.TYPE_CENTER
-    seekDy.a = 0.5f
-    seekDy.onRangeChange = { a, _ ->
-      project.stitchInfo.forEach {
-        if (project.selected.contains(it.imageKey)) it.dy = (a * 2 - 1) * it.height
-      }
+    numberB.doAfterTextChanged {
+      if (!numberB.isFocused) return@doAfterTextChanged
+      val newNum = it?.toString()?.toFloatOrNull() ?: return@doAfterTextChanged
+      setNumber(null, newNum)
+      updateSeekbar()
       invalidateView()
     }
-    seekRotate.type = RangeSeekbar.TYPE_CENTER
-    seekRotate.a = 0.5f
-    seekRotate.onRangeChange = { a, _ ->
-      project.stitchInfo.forEach {
-        if (project.selected.contains(it.imageKey)) it.drot = (a * 2 - 1) * 180
-      }
+    numberInc.setOnClickListener {
+      val newNum = (numberA.text.toString().toFloatOrNull() ?: 0f) +
+          10.0.pow(-(selectItems[selectIndex]?.first ?: 0).toDouble()).toFloat()
+      updateNumberView(newNum)
+      setNumber(newNum)
+      updateSeekbar()
       invalidateView()
     }
-    seekScale.type = RangeSeekbar.TYPE_CENTER
-    seekScale.a = 0.5f
-    seekScale.onRangeChange = { a, _ ->
-      project.stitchInfo.forEach {
-        if (project.selected.contains(it.imageKey)) it.dscale = (a * 2)
-      }
+    numberDec.setOnClickListener {
+      val newNum = (numberA.text.toString().toFloatOrNull() ?: 0f) -
+          10.0.pow(-(selectItems[selectIndex]?.first ?: 0).toDouble()).toFloat()
+      updateNumberView(newNum)
+      setNumber(newNum)
+      updateSeekbar()
       invalidateView()
     }
-    seekTrim.type = RangeSeekbar.TYPE_GRADIENT
-    seekTrim.a = 0.4f
-    seekTrim.b = 0.6f
-    seekTrim.onRangeChange = { a, b ->
-      project.stitchInfo.forEach {
-        if (project.selected.contains(it.imageKey)) {
-          it.a = a
-          it.b = b
-        }
-      }
-      invalidateView()
-    }
-    seekXRange.onRangeChange = { a, b ->
-      project.stitchInfo.forEach {
-        if (project.selected.contains(it.imageKey)) {
-          it.xa = a
-          it.xb = b
-        }
-      }
-      invalidateView()
-    }
-    seekYRange.onRangeChange = { a, b ->
-      project.stitchInfo.forEach {
-        if (project.selected.contains(it.imageKey)) {
-          it.ya = a
-          it.yb = b
-        }
-      }
+    seekbar.onRangeChange = { a, b ->
+      setNumber(a, b, true)
+      updateNumber()
       invalidateView()
     }
     selectAll()
@@ -414,7 +534,7 @@ class EditActivity : Activity() {
           this, null,
           getString(R.string.alert_reading)
         )
-        GlobalScope.launch(Dispatchers.IO) {
+        MainScope().launch(Dispatchers.IO) {
           val clipData = data?.clipData
           if (clipData != null) {
             val count: Int =
@@ -427,7 +547,7 @@ class EditActivity : Activity() {
           }
           runOnUiThread {
             if (requestCode == REQUEST_IMPORT_NEW) {
-              EditActivity.startActivity(this@EditActivity, projectKey)
+              startActivity(this@EditActivity, projectKey)
               finish()
             }
             progress.cancel()
@@ -440,7 +560,7 @@ class EditActivity : Activity() {
           this, null,
           getString(R.string.alert_stitching)
         )
-        GlobalScope.launch(Dispatchers.IO) {
+        MainScope().launch(Dispatchers.IO) {
           val err = try {
             val fileOutputStream = contentResolver.openOutputStream(data?.data!!)!!
             val bitmap = editView.drawToBitmap()

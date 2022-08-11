@@ -30,6 +30,7 @@ android {
     defaultConfig {
         applicationId "soko.ekibun.stitch"
         minSdkVersion 21
+        //noinspection OldTargetApi
         targetSdkVersion 31
         versionCode gitVersionCode()
         versionName gitVersionTag()

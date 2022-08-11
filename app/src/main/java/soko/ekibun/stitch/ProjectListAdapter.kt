@@ -6,8 +6,8 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.TextView
 import java.io.File
-import java.time.Instant
-import java.time.ZoneId
+import java.text.SimpleDateFormat
+import java.util.*
 
 class ProjectListAdapter(private val headerView: View) : BaseAdapter() {
 
@@ -31,12 +31,16 @@ class ProjectListAdapter(private val headerView: View) : BaseAdapter() {
   override fun getView(i: Int, convertView: View?, parent: ViewGroup): View {
     if (i == 0) return headerView
     val view = if (convertView != headerView && convertView != null) convertView else
-      LayoutInflater.from(parent.context).inflate(R.layout.list_project, null, false)
+      LayoutInflater.from(parent.context).inflate(R.layout.list_project, parent, false)
     val file = getItem(i)
     val titleView = view.findViewById<TextView>(R.id.text_title)
     titleView.text = file.name.toLongOrNull(16)?.let {
-      Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toString().substringBefore('+')
-    }
+      dateFormat.format(
+        Calendar.getInstance().apply {
+          timeInMillis = it
+        }.time
+      )
+    } ?: file.name
     view.findViewById<View>(R.id.item_view).setOnClickListener {
       EditActivity.startActivity(parent.context, file.name)
     }
@@ -46,4 +50,6 @@ class ProjectListAdapter(private val headerView: View) : BaseAdapter() {
     }
     return view
   }
+
+  val dateFormat by lazy { SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS", Locale.getDefault()) }
 }

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.graphics.*
+import android.os.Build
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
@@ -31,10 +32,10 @@ class EditView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
     )
 
   @Suppress("DEPRECATION")
-  private val colorPrimary by lazy { resources.getColor(R.color.colorPrimary) }
+  private val colorUnselected by lazy { resources.getColor(R.color.opaque) }
 
   @Suppress("DEPRECATION")
-  private val colorWarn by lazy { resources.getColor(R.color.colorWarn) }
+  private val colorSelected by lazy { resources.getColor(R.color.colorPrimary) }
 
   private val paint by lazy {
     Paint().apply {
@@ -106,11 +107,12 @@ class EditView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
       lastDrawY = transY
       lastDrawScale = scale
       job?.cancel()
-      job = GlobalScope.launch(dispatcher) {
+      job = MainScope().launch(dispatcher) {
         if (!isActive) return@launch
-        val c = holder.lockHardwareCanvas() ?: holder.lockCanvas() ?: return@launch
+        val c = (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+          holder.lockHardwareCanvas() else null) ?: holder.lockCanvas() ?: return@launch
         c.save()
-        c.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+        c.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
         c.translate(transX, transY)
         c.scale(scale, scale)
         val project = project ?: return@launch
@@ -123,7 +125,7 @@ class EditView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
 
         project.stitchInfo.firstOrNull()?.let {
           val selected = project.selected.contains(it.imageKey)
-          paint.color = if (selected) colorWarn else colorPrimary
+          paint.color = if (selected) colorSelected else colorUnselected
           c.drawCircle(
             it.cx,
             it.cy,
@@ -137,7 +139,7 @@ class EditView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
         }
         project.stitchInfo.reduceIndexedOrNull { i, acc, it ->
           val selected = project.selected.contains(it.imageKey)
-          paint.color = if (selected) colorWarn else colorPrimary
+          paint.color = if (selected) colorSelected else colorUnselected
           c.drawCircle(
             it.cx,
             it.cy,

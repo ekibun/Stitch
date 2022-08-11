@@ -1,14 +1,14 @@
 package soko.ekibun.stitch
 
 import android.app.Application
-import android.preference.PreferenceManager
+import android.content.Context
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.util.concurrent.Executors
 
 class App : Application() {
-  val sp by lazy { PreferenceManager.getDefaultSharedPreferences(this) }
+  val sp by lazy { getSharedPreferences(packageName + "_preferences", Context.MODE_PRIVATE)!! }
   private val bitmapCache by lazy { BitmapCache(this) }
   private val projects by lazy { HashMap<String, Stitch.StitchProject>() }
 
@@ -18,7 +18,7 @@ class App : Application() {
   }
 
   val dataDirPath: String by lazy {
-    dataDir.path + File.separator + "Project"
+    applicationInfo.dataDir + File.separator + "Project"
   }
 
   companion object {
@@ -43,10 +43,7 @@ class App : Application() {
       return File(app.dataDirPath + File.separator + projectKey + File.separator + ".project")
     }
 
-    fun newProject(): String {
-      val projectKey = System.currentTimeMillis().toString(16)
-      return projectKey
-    }
+    fun newProject(): String = System.currentTimeMillis().toString(16)
 
     fun clearProjects() {
       val file = File(app.dataDirPath)

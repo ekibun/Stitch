@@ -48,6 +48,17 @@ class RangeSeekbar(context: Context?, attrs: AttributeSet?) : View(context, attr
 
   @SuppressLint("DrawAllocation")
   override fun onDraw(c: Canvas) {
+    if (!isEnabled) {
+      controlPaint.color = colorOpaque
+      c.drawRect(
+        radius,
+        height / 2f - thick,
+        width.toFloat() - radius,
+        height / 2f + thick,
+        controlPaint
+      )
+      return
+    }
     val ax = radius + (width - 2 * radius) * a
     val bx = radius + (width - 2 * radius) * b
     when (type) {
@@ -153,6 +164,7 @@ class RangeSeekbar(context: Context?, attrs: AttributeSet?) : View(context, attr
 
   @SuppressLint("ClickableViewAccessibility")
   override fun onTouchEvent(event: MotionEvent): Boolean {
+    if (!isEnabled) return false
     when (event.action) {
       MotionEvent.ACTION_DOWN -> {
         parent.requestDisallowInterceptTouchEvent(true)

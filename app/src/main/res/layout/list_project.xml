@@ -10,9 +10,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/bg_rect"
+        android:backgroundTint="@color/opaque"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="8dp">
+        android:padding="8dp"
+        tools:ignore="UselessParent,ContentDescription">
 
         <TextView
             android:id="@+id/text_title"

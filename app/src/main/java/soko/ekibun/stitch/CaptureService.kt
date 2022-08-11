@@ -3,6 +3,7 @@ package soko.ekibun.stitch
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.IBinder
 import android.widget.Toast
 
@@ -36,7 +37,9 @@ class CaptureService : Service() {
   }
 
   override fun onCreate() {
-    startService(Intent(this, QuickTileService::class.java))
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+      startService(Intent(this, QuickTileService::class.java))
+    }
     floatButton.run { }
     notification.run { }
   }
@@ -58,7 +61,9 @@ class CaptureService : Service() {
     stopForeground(true)
     screenCapture?.destroy()
     floatButton.destroy()
-    startService(Intent(this, QuickTileService::class.java))
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+      startService(Intent(this, QuickTileService::class.java))
+    }
   }
 
   override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {

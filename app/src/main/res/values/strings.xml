@@ -16,18 +16,27 @@
     <string name="alert_cancel">取消</string>
     <string name="alert_ok">确认</string>
 
-    <string name="menu_select_all">全选</string>
-    <string name="menu_select_clear">清除</string>
-    <string name="label_select">选中 %d/%d</string>
+    <string name="switch_diff">去重</string>
+    <string name="switch_homography">特征匹配(旋转缩放)</string>
+
     <string name="menu_remove">删除</string>
     <string name="menu_auto_stitch">自动拼接</string>
-    <string name="label_dx">水平偏移</string>
-    <string name="label_dy">竖向偏移</string>
-    <string name="label_trim">裁切位置</string>
+    <string name="menu_select_all">全选</string>
+    <string name="menu_select_clear">清除</string>
     <string name="menu_import">导入</string>
     <string name="menu_capture">截图</string>
     <string name="menu_save">保存</string>
     <string name="menu_share">分享</string>
+
+    <string name="label_select">选中 %d/%d</string>
+    <string name="label_dx">水平偏移</string>
+    <string name="label_dy">竖向偏移</string>
+    <string name="label_trim">过渡位置</string>
+    <string name="label_xrange">横向范围</string>
+    <string name="label_yrange">纵向范围</string>
+    <string name="label_rotate">旋转角度</string>
+    <string name="label_scale">缩放比例</string>
+
     <string name="save_success">图片保存成功</string>
     <string name="throw_error">出错啦</string>
     <string name="throw_error_capture">捕捉屏幕失败，请允许后台运行并重新截取</string>
@@ -108,17 +117,11 @@
         SURF is noncommercial. You may not use this work for commercial purposes. For any reuse or distribution, you must make clear to others the license terms of this work. Any of these conditions can be waived if you get written permission from the copyright holder.
     </string>
     <string name="menu_opensource">开源许可协议</string>
-    <string name="label_xrange">横向范围</string>
-    <string name="label_yrange">纵向范围</string>
+
     <string name="menu_undo">撤销</string>
-    <string name="import_from_gallery">从相册导入</string>
+    <string name="import_from_gallery">相册导入</string>
     <string name="import_from_capture">屏幕截图</string>
     <string name="menu_about">关于</string>
-    <string name="label_rotate">旋转角度</string>
-    <string name="menu_find_homography">特征匹配</string>
-    <string name="menu_phase_correlate">相位相关</string>
-    <string name="menu_find_homography_diff">特征匹配(去重)</string>
-    <string name="menu_phase_correlate_diff">相位相关(去重)</string>
-    <string name="label_scale">缩放</string>
     <string name="clear_history">清空历史记录</string>
+    <string name="menu_divider">-</string>
 </resources>
