@@ -292,33 +292,34 @@ class EditActivity : Activity() {
     progress.setMessage(getString(R.string.alert_computing, done, project.selected.size))
     progress.show()
     MainScope().launch(Dispatchers.IO) {
-      project.updateUndo()
-      project.stitchInfo.reduceOrNull { acc, it ->
-        if (progress.isShowing && project.selected.contains(it.imageKey)) {
-          Stitch.combine(homo, diff, acc, it)?.let { data ->
-            if (progress.isShowing) {
-              it.dx = data.dx
-              it.dy = data.dy
-              it.drot = data.drot
-              it.dscale = data.dscale
+      project.updateUndo {
+        project.stitchInfo.reduceOrNull { acc, it ->
+          if (progress.isShowing && project.selected.contains(it.imageKey)) {
+            Stitch.combine(homo, diff, acc, it)?.let { data ->
+              if (progress.isShowing) {
+                it.dx = data.dx
+                it.dy = data.dy
+                it.drot = data.drot
+                it.dscale = data.dscale
+              }
+            }
+            ++done
+            runOnUiThread {
+              progress.setMessage(
+                getString(
+                  R.string.alert_computing,
+                  done,
+                  project.selected.size
+                )
+              )
             }
           }
-          ++done
-          runOnUiThread {
-            progress.setMessage(
-              getString(
-                R.string.alert_computing,
-                done,
-                project.selected.size
-              )
-            )
-          }
+          it
         }
-        it
-      }
-      runOnUiThread {
-        updateSelectInfo()
-        progress.cancel()
+        runOnUiThread {
+          updateSelectInfo()
+          progress.cancel()
+        }
       }
     }
   }
@@ -396,24 +397,25 @@ class EditActivity : Activity() {
         Toast.makeText(this, R.string.please_select_swap, Toast.LENGTH_SHORT).show()
         return@setOnClickListener
       }
-      project.updateUndo()
-      val (i, j) = project.selected.map { project.stitchInfo.indexOfFirst { info -> info.imageKey == it } }
-      if (i < 0 || j < 0) return@setOnClickListener
-      val a = project.stitchInfo[i]
-      val b = project.stitchInfo.set(j, a)
-      project.stitchInfo[i] = b
-      val adx = a.dx
-      val ady = a.dy
-      val adr = a.drot
-      val ads = a.dscale
-      a.dx = b.dx
-      a.dy = b.dy
-      a.drot = b.drot
-      a.dscale = b.dscale
-      b.dx = adx
-      b.dy = ady
-      b.drot = adr
-      b.dscale = ads
+      project.updateUndo {
+        val (i, j) = project.selected.map { project.stitchInfo.indexOfFirst { info -> info.imageKey == it } }
+        if (i < 0 || j < 0) return@updateUndo
+        val a = project.stitchInfo[i]
+        val b = project.stitchInfo.set(j, a)
+        project.stitchInfo[i] = b
+        val adx = a.dx
+        val ady = a.dy
+        val adr = a.drot
+        val ads = a.dscale
+        a.dx = b.dx
+        a.dy = b.dy
+        a.drot = b.drot
+        a.dscale = b.dscale
+        b.dx = adx
+        b.dy = ady
+        b.drot = adr
+        b.dscale = ads
+      }
       updateSelectInfo()
     }
     findViewById<View>(R.id.menu_remove).setOnClickListener {
@@ -425,9 +427,10 @@ class EditActivity : Activity() {
         .setMessage(getString(R.string.alert_delete, project.selected.size))
         .setNegativeButton(R.string.alert_cancel) { _, _ -> }
         .setPositiveButton(R.string.alert_ok) { _: DialogInterface, _: Int ->
-          project.updateUndo()
-          project.stitchInfo.removeAll { project.selected.contains(it.imageKey) }
-          project.selected.clear()
+          project.updateUndo {
+            project.stitchInfo.removeAll { project.selected.contains(it.imageKey) }
+            project.selected.clear()
+          }
           updateSelectInfo()
         }.show()
     }
@@ -472,47 +475,52 @@ class EditActivity : Activity() {
     }
     findViewById<View>(R.id.menu_auto_stitch).setOnClickListener {
       stitch(
-        findViewById<Switch>(R.id.switch_homography).isChecked,
-        findViewById<Switch>(R.id.switch_diff).isChecked
+        findViewById<CheckBox>(R.id.switch_homography).isChecked,
+        findViewById<CheckBox>(R.id.switch_diff).isChecked
       )
     }
     numberA.doAfterTextChanged {
       if (!numberA.isFocused) return@doAfterTextChanged
       val newNum = it?.toString()?.toFloatOrNull() ?: return@doAfterTextChanged
-      project.updateUndo(numberA)
-      setNumber(newNum)
+      project.updateUndo(numberA) {
+        setNumber(newNum)
+      }
       updateSeekbar()
       invalidateView()
     }
     numberB.doAfterTextChanged {
       if (!numberB.isFocused) return@doAfterTextChanged
       val newNum = it?.toString()?.toFloatOrNull() ?: return@doAfterTextChanged
-      project.updateUndo(numberB)
-      setNumber(null, newNum)
+      project.updateUndo(numberB) {
+        setNumber(null, newNum)
+      }
       updateSeekbar()
       invalidateView()
     }
     numberInc.setOnClickListener {
       val newNum = (numberA.text.toString().toFloatOrNull() ?: 0f) +
           10.0.pow(-(selectItems[selectIndex]?.first ?: 0).toDouble()).toFloat()
-      project.updateUndo(numberInc)
+      project.updateUndo(numberInc) {
+        setNumber(newNum)
+      }
       updateNumberView(newNum)
-      setNumber(newNum)
       updateSeekbar()
       invalidateView()
     }
     numberDec.setOnClickListener {
       val newNum = (numberA.text.toString().toFloatOrNull() ?: 0f) -
           10.0.pow(-(selectItems[selectIndex]?.first ?: 0).toDouble()).toFloat()
-      project.updateUndo(numberDec)
+      project.updateUndo(numberDec) {
+        setNumber(newNum)
+      }
       updateNumberView(newNum)
-      setNumber(newNum)
       updateSeekbar()
       invalidateView()
     }
     seekbar.onRangeChange = { a, b ->
-      project.updateUndo(seekbar)
-      setNumber(a, b, true)
+      project.updateUndo(seekbar) {
+        setNumber(a, b, true)
+      }
       updateNumber()
       invalidateView()
     }
@@ -546,12 +554,14 @@ class EditActivity : Activity() {
             val count: Int =
               clipData.itemCount
             for (i in 0 until count) {
-              project.updateUndo(data)
-              addImage(clipData.getItemAt(i).uri)
+              project.updateUndo(data) {
+                addImage(clipData.getItemAt(i).uri)
+              }
             }
           } else data?.data?.let { path ->
-            project.updateUndo(data)
-            addImage(path)
+            project.updateUndo(data) {
+              addImage(path)
+            }
           }
           runOnUiThread {
             if (requestCode == REQUEST_IMPORT_NEW) {

@@ -362,20 +362,21 @@ class EditView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
           val x = (event.getX(index) - transX) / scale - downOffsetX
           val y = (event.getY(index) - transY) / scale - downOffsetY
           if (abs(initialTouchX - event.x) > 10 || abs(initialTouchY - event.y) > 10) {
-            if (!dragging) project?.updateUndo()
             dragging = true
           }
           if (dragging) {
-            val ddx = x - touching.cx
-            val ddy = y - touching.cy
-            val cos = cos((touching.rot - touching.drot) * Math.PI / 180).toFloat()
-            val sin = sin((touching.rot - touching.drot) * Math.PI / 180).toFloat()
-            val scale =
-              if (touching.dscale == 0f) 0f else touching.scale / touching.dscale
-            touching.dx =
-              touching.dx + if (scale == 0f) 0f else (ddx * cos + ddy * sin) / scale
-            touching.dy =
-              touching.dy + if (scale == 0f) 0f else (-ddx * sin + ddy * cos) / scale
+            project?.updateUndo(touching) {
+              val ddx = x - touching.cx
+              val ddy = y - touching.cy
+              val cos = cos((touching.rot - touching.drot) * Math.PI / 180).toFloat()
+              val sin = sin((touching.rot - touching.drot) * Math.PI / 180).toFloat()
+              val scale =
+                if (touching.dscale == 0f) 0f else touching.scale / touching.dscale
+              touching.dx =
+                touching.dx + if (scale == 0f) 0f else (ddx * cos + ddy * sin) / scale
+              touching.dy =
+                touching.dy + if (scale == 0f) 0f else (-ddx * sin + ddy * cos) / scale
+            }
             (context as? EditActivity)?.updateSelectInfo()
           }
         } else {

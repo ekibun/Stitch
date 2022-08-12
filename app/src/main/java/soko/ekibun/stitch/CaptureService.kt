@@ -23,8 +23,9 @@ class CaptureService : Service() {
     val key = App.bitmapCache.saveBitmap(projectKey, bmp)
     val info = Stitch.StitchInfo(key, bmp.width, bmp.height)
     val project = App.getProject(projectKey)
-    project.updateUndo(screenCapture)
-    project.stitchInfo.add(info)
+    project.updateUndo(screenCapture) {
+      project.stitchInfo.add(info)
+    }
     notification.updateText(project.stitchInfo.size)
   }
 

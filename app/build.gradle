@@ -12,13 +12,25 @@ static def gitVersionTag() {
     def cmd = 'git describe --tags'
     def version = cmd.execute().text.trim()
 
+    def patternVersion = "^(v\\d+\\.\\d+)(\\.(\\d+))?"
+    def matchVersion = version =~ patternVersion
+
+    def versionPref = version
+    def versionSub = 0
+    if (matchVersion) {
+        versionPref = matchVersion[0][1]
+        if (matchVersion[0][3]) {
+            versionSub = Integer.parseInt(matchVersion[0][3])
+        }
+    }
+
     def pattern = "-(\\d+)-g"
     def matcher = version =~ pattern
 
     if (matcher) {
-        version = version.substring(0, matcher.start()) + "." + matcher[0][1]
+        version = versionPref + "." + (Integer.parseInt(matcher[0][1]) + versionSub)
     } else {
-        version = version + ".0"
+        version = versionPref + "." + versionSub
     }
 
     return version

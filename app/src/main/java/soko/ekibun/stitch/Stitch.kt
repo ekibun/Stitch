@@ -49,30 +49,33 @@ object Stitch {
       undoTag = null
     }
 
-    fun updateUndo(tag: Any? = System.currentTimeMillis()) {
-      if (tag == null || tag == undoTag) return
-      undoTag = tag
-      selectedBak.clear()
-      selectedBak.addAll(selected)
-      stitchInfoBak.clear()
-      stitchInfoBak.addAll(stitchInfo.map {
-        it.clone()
-      })
+    fun updateUndo(tag: Any? = System.currentTimeMillis(), runBeforeSave: () -> Unit) {
+      if (tag != null && tag != undoTag) {
+        undoTag = tag
+        selectedBak.clear()
+        selectedBak.addAll(selected)
+        stitchInfoBak.clear()
+        stitchInfoBak.addAll(stitchInfo.map {
+          it.clone()
+        })
+      }
+      runBeforeSave()
       save()
     }
 
     private fun save() {
       @Suppress("BlockingMethodInNonBlockingContext")
       MainScope().launch(App.dispatcherIO) {
+        val info = stitchInfo.toList()
         if (!file.exists()) {
-          if (stitchInfo.isNotEmpty()) file.parentFile?.mkdirs()
+          if (info.isNotEmpty()) file.parentFile?.mkdirs()
           else return@launch
         }
         val os = ObjectOutputStream(file.outputStream())
-        val size = stitchInfo.size
+        val size = info.size
         os.writeInt(size)
         for (i in 0 until size) {
-          os.writeObject(stitchInfo[i])
+          os.writeObject(info[i])
         }
         os.close()
       }
@@ -153,17 +156,17 @@ object Stitch {
         }
         lastPoints = points
 
-        minV = max(minV, minO) / mag2
-        maxV = min(maxV, maxO) / mag2
+        minV = max(minV, minO)
+        maxV = max(minV, min(maxV, maxO))
 
         val va = maxV - (maxV - minV) * it.a
-        val vb = maxV - (maxV - minV) * it.b * (1 + 1e-5f)
+        val vb = maxV - (maxV - minV) * it.b - 0.01f * sqrt(mag2)
 
         it.shader = LinearGradient(
-          cx - (dx * cos + dy * sin) * va,
-          cy - (-dx * sin + dy * cos) * va,
-          cx - (dx * cos + dy * sin) * vb,
-          cy - (-dx * sin + dy * cos) * vb,
+          cx - (dx * cos + dy * sin) * va / mag2,
+          cy - (-dx * sin + dy * cos) * va / mag2,
+          cx - (dx * cos + dy * sin) * vb / mag2,
+          cy - (-dx * sin + dy * cos) * vb / mag2,
           Color.TRANSPARENT,
           Color.WHITE,
           Shader.TileMode.CLAMP
