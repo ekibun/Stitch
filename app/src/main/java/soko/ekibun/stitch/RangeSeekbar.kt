@@ -156,7 +156,7 @@ class RangeSeekbar(context: Context?, attrs: AttributeSet?) : View(context, attr
   }
 
   var onRangeChange: ((Float, Float) -> Unit)? = null
-  var onUpdateUndo: (() -> Unit)? = null
+  var onTouchUp: (() -> Unit)? = null
 
   private var downX = 0f
   private var downY = 0f
@@ -177,10 +177,10 @@ class RangeSeekbar(context: Context?, attrs: AttributeSet?) : View(context, attr
           type != TYPE_CENTER && ar >= br && br < 2 * radius -> 2
           else -> 0
         }
-        if (downObj != 0) onUpdateUndo?.invoke()
       }
       MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
         downObj = 0
+        onTouchUp?.invoke()
       }
       MotionEvent.ACTION_MOVE -> {
         val newValue = ((event.x - radius) / max(1f, (width - 2 * radius)))

@@ -6,7 +6,7 @@ include(ExternalProject)
 
 ExternalProject_Add(opencv_lib
         PREFIX "opencv_lib"
-        SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/opencv/opencv"
+        SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/opencv"
         CMAKE_ARGS
         -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
         -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
@@ -16,7 +16,7 @@ ExternalProject_Add(opencv_lib
         -DCMAKE_BUILD_TYPE=Release
         -DANDROID_PLATFORM=${ANDROID_PLATFORM}
         -DOPENCV_ENABLE_NONFREE=ON
-        -DOPENCV_EXTRA_MODULES_PATH=${CMAKE_CURRENT_LIST_DIR}/opencv/opencv_contrib/modules/
+        -DOPENCV_EXTRA_MODULES_PATH=${CMAKE_CURRENT_LIST_DIR}/opencv_contrib/modules/
         -DANDROID_STL=c++_static
         -DBUILD_ANDROID_PROJECTS=OFF
         -DBUILD_EXAMPLES=OFF
@@ -40,6 +40,8 @@ target_include_directories(stitch PRIVATE "${OpenCV_DIR}/jni/include")
 find_library(log-lib log)
 if (${ANDROID_ABI} MATCHES "armeabi-v7a|arm64-v8a")
     set(HAL_LIBS tegra_hal)
+else()
+    set(HAL_LIBS ippicv ippiw)
 endif ()
 
 target_link_libraries(stitch ${log-lib} ${HAL_LIBS} jnigraphics z cpufeatures ittnotify

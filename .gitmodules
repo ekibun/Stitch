@@ -1,7 +1,7 @@
 [submodule "opencv"]
-  path = app/src/main/jni/opencv/opencv
+  path = app/src/main/jni/opencv
   url = https://github.com/opencv/opencv.git
 
 [submodule "opencv_contrib"]
-  path = app/src/main/jni/opencv/opencv_contrib
+  path = app/src/main/jni/opencv_contrib
   url = https://github.com/opencv/opencv_contrib.git

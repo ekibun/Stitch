@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="?android:colorBackground"
     tools:ignore="UnusedAttribute,ContentDescription,LabelFor">
 
     <soko.ekibun.stitch.EditView
@@ -56,6 +57,12 @@
                 android:tooltipText="@string/menu_select_clear"
                 android:src="@drawable/ic_check_clear"
                 android:tint="?android:attr/textColorPrimary" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="12dp"
+                android:layout_margin="2dp"
+                android:background="@color/opaque" />
 
             <ImageView
                 android:id="@+id/menu_swap"
@@ -226,6 +233,12 @@
                 android:tooltipText="@string/menu_import"
                 android:src="@drawable/ic_image_add"
                 android:tint="?android:colorPrimary" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="12dp"
+                android:layout_margin="2dp"
+                android:background="@color/opaque" />
 
             <ImageView
                 android:id="@+id/menu_undo"

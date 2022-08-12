@@ -353,7 +353,6 @@ class EditActivity : Activity() {
 
     findViewById<View>(R.id.menu_undo).setOnClickListener {
       project.undo()
-      project.selected.clear()
       updateSelectInfo()
     }
 
@@ -480,6 +479,7 @@ class EditActivity : Activity() {
     numberA.doAfterTextChanged {
       if (!numberA.isFocused) return@doAfterTextChanged
       val newNum = it?.toString()?.toFloatOrNull() ?: return@doAfterTextChanged
+      project.updateUndo(numberA)
       setNumber(newNum)
       updateSeekbar()
       invalidateView()
@@ -487,6 +487,7 @@ class EditActivity : Activity() {
     numberB.doAfterTextChanged {
       if (!numberB.isFocused) return@doAfterTextChanged
       val newNum = it?.toString()?.toFloatOrNull() ?: return@doAfterTextChanged
+      project.updateUndo(numberB)
       setNumber(null, newNum)
       updateSeekbar()
       invalidateView()
@@ -494,6 +495,7 @@ class EditActivity : Activity() {
     numberInc.setOnClickListener {
       val newNum = (numberA.text.toString().toFloatOrNull() ?: 0f) +
           10.0.pow(-(selectItems[selectIndex]?.first ?: 0).toDouble()).toFloat()
+      project.updateUndo(numberInc)
       updateNumberView(newNum)
       setNumber(newNum)
       updateSeekbar()
@@ -502,15 +504,20 @@ class EditActivity : Activity() {
     numberDec.setOnClickListener {
       val newNum = (numberA.text.toString().toFloatOrNull() ?: 0f) -
           10.0.pow(-(selectItems[selectIndex]?.first ?: 0).toDouble()).toFloat()
+      project.updateUndo(numberDec)
       updateNumberView(newNum)
       setNumber(newNum)
       updateSeekbar()
       invalidateView()
     }
     seekbar.onRangeChange = { a, b ->
+      project.updateUndo(seekbar)
       setNumber(a, b, true)
       updateNumber()
       invalidateView()
+    }
+    seekbar.onTouchUp = {
+      project.clearUndoTag()
     }
     selectAll()
   }
@@ -528,7 +535,6 @@ class EditActivity : Activity() {
     when (requestCode) {
       REQUEST_CAPTURE -> finish()
       REQUEST_IMPORT, REQUEST_IMPORT_NEW -> {
-        project.updateUndo()
         project.selected.clear()
         val progress = ProgressDialog.show(
           this, null,
@@ -540,9 +546,11 @@ class EditActivity : Activity() {
             val count: Int =
               clipData.itemCount
             for (i in 0 until count) {
+              project.updateUndo(data)
               addImage(clipData.getItemAt(i).uri)
             }
           } else data?.data?.let { path ->
+            project.updateUndo(data)
             addImage(path)
           }
           runOnUiThread {

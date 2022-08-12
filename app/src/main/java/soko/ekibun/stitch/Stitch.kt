@@ -38,12 +38,30 @@ object Stitch {
       list
     }
 
-    private val stitchInfoBak by lazy { mutableListOf<StitchInfo>() }
-    fun updateUndo() {
+    private val stitchInfoBak by lazy {
+      mutableListOf<StitchInfo>().apply { addAll(stitchInfo.map { it.clone() }) }
+    }
+    private val selectedBak by lazy {
+      mutableSetOf<String>().apply { addAll(selected) }
+    }
+    private var undoTag: Any? = null
+    fun clearUndoTag() {
+      undoTag = null
+    }
+
+    fun updateUndo(tag: Any? = System.currentTimeMillis()) {
+      if (tag == null || tag == undoTag) return
+      undoTag = tag
+      selectedBak.clear()
+      selectedBak.addAll(selected)
       stitchInfoBak.clear()
       stitchInfoBak.addAll(stitchInfo.map {
         it.clone()
       })
+      save()
+    }
+
+    private fun save() {
       @Suppress("BlockingMethodInNonBlockingContext")
       MainScope().launch(App.dispatcherIO) {
         if (!file.exists()) {
@@ -61,13 +79,17 @@ object Stitch {
     }
 
     fun undo() {
-      val last = stitchInfo.map { it }
+      val last = stitchInfo.map { it.clone() }
+      val lastSelect = selected.map { it }
       stitchInfo.clear()
-      stitchInfo.addAll(stitchInfoBak.map {
-        it.clone()
-      })
+      stitchInfo.addAll(stitchInfoBak)
+      selected.clear()
+      selected.addAll(selectedBak)
+      selectedBak.clear()
+      selectedBak.addAll(lastSelect)
       stitchInfoBak.clear()
       stitchInfoBak.addAll(last)
+      save()
     }
 
     fun updateInfo(): Rect {
