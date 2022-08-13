@@ -9,6 +9,7 @@ import android.graphics.Shader
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
+import android.widget.LinearLayout
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -168,6 +169,10 @@ class RangeSeekbar(context: Context?, attrs: AttributeSet?) : View(context, attr
     when (event.action) {
       MotionEvent.ACTION_DOWN -> {
         parent.requestDisallowInterceptTouchEvent(true)
+        (layoutParams as? LinearLayout.LayoutParams)?.let { lp ->
+          lp.width = width
+          lp.weight = 0f
+        }
         downX = event.x
         downY = event.y
         val ar = abs(downX - radius - (width - 2 * radius) * a)
@@ -179,6 +184,11 @@ class RangeSeekbar(context: Context?, attrs: AttributeSet?) : View(context, attr
         }
       }
       MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+        (layoutParams as? LinearLayout.LayoutParams)?.let { lp ->
+          lp.width = 0
+          lp.weight = 1f
+        }
+        requestLayout()
         downObj = 0
         onTouchUp?.invoke()
       }

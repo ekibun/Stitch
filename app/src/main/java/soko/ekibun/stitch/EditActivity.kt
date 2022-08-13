@@ -19,6 +19,7 @@ import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
+import androidx.core.view.setPadding
 import androidx.core.widget.doAfterTextChanged
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
@@ -52,6 +53,56 @@ class EditActivity : Activity() {
   private val numberB by lazy { findViewById<EditText>(R.id.menu_edit_b) }
   private val numberDiv by lazy { findViewById<View>(R.id.menu_edit_divider) }
   private val dropdown by lazy { findViewById<TextView>(R.id.menu_dropdown) }
+  private val panelAuto by lazy { findViewById<View>(R.id.panel_auto) }
+  private val panelSeekbar by lazy { findViewById<View>(R.id.panel_seekbar) }
+  private val switchHorizon by lazy { findViewById<CheckBox>(R.id.switch_horizon) }
+
+  private val tabviews by lazy {
+    findViewById<LinearLayout>(R.id.panel_tab).let { layout ->
+      val padding = (resources.displayMetrics.density * 16).roundToInt()
+      StitchType.values().mapIndexed { i, it ->
+        TextView(this).apply {
+          text = it.label
+          tag = it
+          textAlignment = TextView.TEXT_ALIGNMENT_CENTER
+          setPadding(padding)
+          setOnClickListener { _ ->
+            stitchType = it
+            updateSelectInfo()
+          }
+          layout.addView(
+            this, i, LinearLayout.LayoutParams(
+              0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f
+            )
+          )
+        }
+      }
+    }
+  }
+
+  fun updateTab() {
+    tabviews.forEach {
+      it.setBackgroundResource(if (it.tag == stitchType) R.color.opaque else 0)
+    }
+    when (stitchType) {
+      StitchType.AUTO -> {
+        panelSeekbar.visibility = View.GONE
+        panelAuto.visibility = View.VISIBLE
+      }
+      StitchType.TILE -> {
+        panelSeekbar.visibility = View.VISIBLE
+        panelAuto.visibility = View.GONE
+        switchHorizon.visibility = View.VISIBLE
+        dropdown.visibility = View.GONE
+      }
+      StitchType.MAN -> {
+        panelSeekbar.visibility = View.VISIBLE
+        panelAuto.visibility = View.GONE
+        switchHorizon.visibility = View.GONE
+        dropdown.visibility = View.VISIBLE
+      }
+    }
+  }
 
   data class SelectItemInfo(
     val roundOf: Int,
@@ -69,6 +120,12 @@ class EditActivity : Activity() {
   )
   private var selectIndex = R.string.label_dy
 
+  enum class StitchType(var label: String) {
+    AUTO("自动"), TILE("平铺"), MAN("手动")
+  }
+
+  private var stitchType = StitchType.AUTO
+
   private val projectKey by lazy { intent.extras!!.getString("project")!! }
   val project by lazy { App.getProject(projectKey) }
 
@@ -79,7 +136,9 @@ class EditActivity : Activity() {
   }
 
   private fun updateNumberView(a: Float? = null, b: Float? = null) {
-    val (roundOf, showB) = selectItems[selectIndex] ?: (0 to false)
+    val (roundOf, showB) = if (stitchType == StitchType.MAN)
+      selectItems[selectIndex] ?: (0 to false)
+    else (2 to true)
     numberB.visibility = if (showB) View.VISIBLE else View.GONE
     numberDiv.visibility = if (showB) View.VISIBLE else View.GONE
     numberDec.visibility = if (showB) View.GONE else View.VISIBLE
@@ -109,7 +168,20 @@ class EditActivity : Activity() {
   fun setNumber(a: Float? = null, b: Float? = null, relative: Boolean = false) {
     val selected = selectedStitchInfo
     if (selected.isNotEmpty()) selected.forEach {
-      when (selectIndex) {
+      if (stitchType == StitchType.TILE) {
+        val aa = a ?: seekbar.a
+        val bb = b ?: seekbar.b
+        val rest = 1 - bb + aa
+        it.a = if (rest > 0) aa / rest else 0f
+        it.b = it.a
+        if (switchHorizon.isChecked) {
+          it.dx = (bb - aa) * it.width
+          it.dy = 0f
+        } else {
+          it.dy = (bb - aa) * it.height
+          it.dx = 0f
+        }
+      } else when (selectIndex) {
         R.string.label_dx -> if (a != null) it.dx = if (relative) (a * 2 - 1) * it.width else a
         R.string.label_dy -> if (a != null) it.dy = if (relative) (a * 2 - 1) * it.height else a
         R.string.label_trim -> {
@@ -131,7 +203,7 @@ class EditActivity : Activity() {
   }
 
   private val selectedStitchInfo
-    get() = when (selectIndex) {
+    get() = when (if (stitchType == StitchType.MAN) selectIndex else 0) {
       R.string.label_dx,
       R.string.label_dy,
       R.string.label_trim -> project.stitchInfo.filterIndexed { i, v ->
@@ -144,7 +216,19 @@ class EditActivity : Activity() {
     val selected = selectedStitchInfo
     if (selected.isNotEmpty()) {
       numberView.visibility = View.VISIBLE
-      when (selectIndex) {
+      if (stitchType == StitchType.TILE) {
+        if (switchHorizon.isChecked) {
+          updateNumberView(
+            selected.map { (1 - it.dx / it.width) * it.a }.average().toFloat(),
+            selected.map { it.a + (1 - it.a) * (it.dx / it.width) }.average().toFloat()
+          )
+        } else {
+          updateNumberView(
+            selected.map { (1 - it.dy / it.height) * it.a }.average().toFloat(),
+            selected.map { it.a + (1 - it.a) * (it.dy / it.height) }.average().toFloat()
+          )
+        }
+      } else when (selectIndex) {
         R.string.label_dx -> {
           updateNumberView(selected.map { it.dx }.average().toFloat())
         }
@@ -185,7 +269,16 @@ class EditActivity : Activity() {
     val selected = selectedStitchInfo
     if (selected.isNotEmpty()) {
       seekbar.isEnabled = true
-      when (selectIndex) {
+      if (stitchType == StitchType.TILE) {
+        seekbar.type = RangeSeekbar.TYPE_RANGE
+        if (switchHorizon.isChecked) {
+          seekbar.a = selected.map { (1 - it.dx / it.width) * it.a }.average().toFloat()
+          seekbar.b = selected.map { it.a + (1 - it.a) * (it.dx / it.width) }.average().toFloat()
+        } else {
+          seekbar.a = selected.map { (1 - it.dy / it.height) * it.a }.average().toFloat()
+          seekbar.b = selected.map { it.a + (1 - it.a) * (it.dy / it.height) }.average().toFloat()
+        }
+      } else when (selectIndex) {
         R.string.label_dx -> {
           seekbar.type = RangeSeekbar.TYPE_CENTER
           seekbar.a = selected.map { (it.dx / it.width + 1) / 2 }.average().toFloat()
@@ -232,6 +325,7 @@ class EditActivity : Activity() {
     invalidateView()
     selectInfo.text =
       getString(R.string.label_select, project.selected.size, project.stitchInfo.size)
+    updateTab()
     updateSeekbar()
     updateNumber()
   }
@@ -478,6 +572,13 @@ class EditActivity : Activity() {
         findViewById<CheckBox>(R.id.switch_homography).isChecked,
         findViewById<CheckBox>(R.id.switch_diff).isChecked
       )
+    }
+    switchHorizon.setOnCheckedChangeListener { _, _ ->
+      project.updateUndo(switchHorizon) {
+        setNumber()
+      }
+      updateSeekbar()
+      invalidateView()
     }
     numberA.doAfterTextChanged {
       if (!numberA.isFocused) return@doAfterTextChanged

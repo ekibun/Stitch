@@ -87,10 +87,10 @@
 
 
         <LinearLayout
+            android:id="@+id/panel_auto"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_rect"
-            android:backgroundTint="@color/opaque"
+            android:layout_height="56dp"
+            android:background="@color/opaque"
             android:gravity="center_vertical"
             android:padding="8dp">
 
@@ -137,10 +137,20 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/panel_seekbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="56dp"
             android:gravity="center_vertical"
+            android:background="@color/opaque"
             android:padding="8dp">
+
+            <CheckBox
+                android:id="@+id/switch_horizon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="8dp"
+                android:text="横向" />
 
             <TextView
                 android:id="@+id/menu_dropdown"
@@ -216,6 +226,12 @@
                     android:tintMode="src_in" />
             </LinearLayout>
         </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/panel_tab"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
 
         <LinearLayout
             android:layout_width="match_parent"
