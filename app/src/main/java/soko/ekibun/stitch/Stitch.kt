@@ -1,19 +1,19 @@
 package soko.ekibun.stitch
 
 import android.graphics.*
-import android.util.Log
 import androidx.core.graphics.applyCanvas
 import androidx.core.graphics.withRotation
-import kotlinx.coroutines.MainScope
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import java.io.IOException
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
-import java.io.Serializable
 import kotlin.math.*
 
 object Stitch {
+
+  private val gson = Gson()
 
   data class StitchProject(
     val projectKey: String
@@ -23,15 +23,15 @@ object Stitch {
     }
     val stitchInfo by lazy {
       val list = mutableListOf<StitchInfo>()
-      runBlocking(App.dispatcherIO) {
-        if (file.exists()) try {
-          val ins = ObjectInputStream(file.inputStream())
-          val size = ins.readInt()
-          for (i in 0 until size) {
-            list.add(ins.readObject() as StitchInfo)
-          }
-          ins.close()
-        } catch (e: IOException) {
+      if (file.exists()) runBlocking(App.dispatcherIO) {
+        try {
+          list.addAll(
+            gson.fromJson<ArrayList<StitchInfo>>(
+              file.readText(),
+              object : TypeToken<ArrayList<StitchInfo>>() {}.type
+            )
+          )
+        } catch (e: Exception) {
           e.printStackTrace()
         }
       }
@@ -63,21 +63,18 @@ object Stitch {
       save()
     }
 
+    var job: Job? = null
     private fun save() {
-      @Suppress("BlockingMethodInNonBlockingContext")
-      MainScope().launch(App.dispatcherIO) {
-        val info = stitchInfo.toList()
-        if (!file.exists()) {
-          if (info.isNotEmpty()) file.parentFile?.mkdirs()
-          else return@launch
+      runBlocking {
+        job?.cancelAndJoin()
+        job = launch(App.dispatcherIO) job@{
+          val info = stitchInfo.toList()
+          if (!file.exists()) {
+            if (info.isNotEmpty()) file.parentFile?.mkdirs()
+            else return@job
+          }
+          file.writeText(gson.toJson(info))
         }
-        val os = ObjectOutputStream(file.outputStream())
-        val size = info.size
-        os.writeInt(size)
-        for (i in 0 until size) {
-          os.writeObject(info[i])
-        }
-        os.close()
       }
     }
 
@@ -245,7 +242,7 @@ object Stitch {
     var xb: Float = 1f, // [xa, 1]
     var ya: Float = 0f, // [0, yb]
     var yb: Float = 1f, // [ya, 1]
-  ) : Serializable {
+  ) {
     @Transient
     var cx: Float = 0f
 
@@ -333,7 +330,6 @@ object Stitch {
         val cx = (0.5 - img1.xa) * img1.width
         val cy = (0.5 - img1.ya) * img1.height
         val ps = data[6] * cx + data[7] * cy + data[8]
-        Log.v("HOMO", data.toList().toString())
         val dx = ((data[0] * cx + data[1] * cy + data[2]) / ps -
             (0.5 - img0.xa) * img0.width).toFloat()
         val dy = ((data[3] * cx + data[4] * cy + data[5]) / ps -
