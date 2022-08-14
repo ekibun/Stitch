@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="colorPrimary">#4284F3</color>
+    <color name="colorUnselect">#8888</color>
     <color name="opaque">#4888</color>
 </resources>

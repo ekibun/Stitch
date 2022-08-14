@@ -12,6 +12,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -19,6 +20,7 @@ import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
+import androidx.annotation.StringRes
 import androidx.core.view.setPadding
 import androidx.core.widget.doAfterTextChanged
 import kotlinx.coroutines.Dispatchers
@@ -57,12 +59,14 @@ class EditActivity : Activity() {
   private val panelSeekbar by lazy { findViewById<View>(R.id.panel_seekbar) }
   private val switchHorizon by lazy { findViewById<CheckBox>(R.id.switch_horizon) }
 
+  private val dp by lazy { resources.displayMetrics.density }
+
   private val tabviews by lazy {
     findViewById<LinearLayout>(R.id.panel_tab).let { layout ->
-      val padding = (resources.displayMetrics.density * 16).roundToInt()
+      val padding = (16 * dp).roundToInt()
       StitchType.values().mapIndexed { i, it ->
         TextView(this).apply {
-          text = it.label
+          setText(it.label)
           tag = it
           textAlignment = TextView.TEXT_ALIGNMENT_CENTER
           setPadding(padding)
@@ -80,9 +84,29 @@ class EditActivity : Activity() {
     }
   }
 
+  private val colorSelected by lazy {
+    val arr = theme.obtainStyledAttributes(
+      intArrayOf(
+        android.R.attr.textColorPrimary,
+        android.R.attr.textColorSecondary,
+        android.R.attr.colorAccent
+      )
+    )
+    arrayOfNulls<Int>(arr.indexCount).mapIndexed { i, _ -> arr.getColor(i, 0) }
+  }
+
+  private val tabDrawable by lazy {
+    getDrawable(R.drawable.bg_rect)?.apply {
+      setTint(colorSelected[2])
+      setBounds(0, 0, (8 * dp).roundToInt(), (4 * dp).roundToInt())
+    }
+  }
+
   fun updateTab() {
     tabviews.forEach {
-      it.setBackgroundResource(if (it.tag == stitchType) R.color.opaque else 0)
+      it.typeface = if (it.tag == stitchType) Typeface.DEFAULT_BOLD else Typeface.DEFAULT
+      it.setTextColor(if (it.tag == stitchType) colorSelected[0] else colorSelected[1])
+      it.setCompoundDrawables(null, null, null, if (it.tag == stitchType) tabDrawable else null)
     }
     when (stitchType) {
       StitchType.AUTO -> {
@@ -120,8 +144,8 @@ class EditActivity : Activity() {
   )
   private var selectIndex = R.string.label_dy
 
-  enum class StitchType(var label: String) {
-    AUTO("自动"), TILE("平铺"), MAN("手动")
+  enum class StitchType(@StringRes var label: Int) {
+    AUTO(R.string.tab_auto), TILE(R.string.tab_tile), MAN(R.string.tab_man)
   }
 
   private var stitchType = StitchType.AUTO
@@ -441,7 +465,7 @@ class EditActivity : Activity() {
         windowInsets.systemWindowInsetLeft,
         0,
         windowInsets.systemWindowInsetRight,
-        0
+        windowInsets.systemWindowInsetBottom
       )
       windowInsets.consumeSystemWindowInsets()
     }
@@ -487,28 +511,38 @@ class EditActivity : Activity() {
       selectClear()
     }
     findViewById<View>(R.id.menu_swap).setOnClickListener {
-      if (project.selected.size != 2) {
+      if (project.selected.size < 2) {
         Toast.makeText(this, R.string.please_select_swap, Toast.LENGTH_SHORT).show()
         return@setOnClickListener
       }
       project.updateUndo {
-        val (i, j) = project.selected.map { project.stitchInfo.indexOfFirst { info -> info.imageKey == it } }
-        if (i < 0 || j < 0) return@updateUndo
-        val a = project.stitchInfo[i]
-        val b = project.stitchInfo.set(j, a)
-        project.stitchInfo[i] = b
+        val selected = project.selected.toList()
+        val i = selected.last().let {
+          project.stitchInfo.indexOfFirst { info -> info.imageKey == it }
+        }
+        if (i < 0) return@updateUndo
+        var a = project.stitchInfo[i]
         val adx = a.dx
         val ady = a.dy
         val adr = a.drot
         val ads = a.dscale
-        a.dx = b.dx
-        a.dy = b.dy
-        a.drot = b.drot
-        a.dscale = b.dscale
-        b.dx = adx
-        b.dy = ady
-        b.drot = adr
-        b.dscale = ads
+        for (indic in 0 until selected.size - 1) {
+          val j = selected[indic].let {
+            project.stitchInfo.indexOfFirst { info -> info.imageKey == it }
+          }
+          if (j < 0) return@updateUndo
+          val b = project.stitchInfo.set(j, a)
+          a.dx = b.dx
+          a.dy = b.dy
+          a.drot = b.drot
+          a.dscale = b.dscale
+          a = b
+        }
+        project.stitchInfo[i] = a
+        a.dx = adx
+        a.dy = ady
+        a.drot = adr
+        a.dscale = ads
       }
       updateSelectInfo()
     }
@@ -518,7 +552,13 @@ class EditActivity : Activity() {
         return@setOnClickListener
       }
       AlertDialog.Builder(this)
-        .setMessage(getString(R.string.alert_delete, project.selected.size))
+        .setMessage(
+          resources.getQuantityString(
+            R.plurals.alert_delete,
+            project.selected.size,
+            project.selected.size
+          )
+        )
         .setNegativeButton(R.string.alert_cancel) { _, _ -> }
         .setPositiveButton(R.string.alert_ok) { _: DialogInterface, _: Int ->
           project.updateUndo {

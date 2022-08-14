@@ -150,7 +150,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:padding="8dp"
-                android:text="横向" />
+                android:text="@string/menu_horizon" />
 
             <TextView
                 android:id="@+id/menu_dropdown"

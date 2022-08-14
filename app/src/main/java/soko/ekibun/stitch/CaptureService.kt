@@ -73,8 +73,10 @@ class CaptureService : Service() {
         stop()
       }
       intent.hasExtra("captureData") -> {
-        App.captureProject = intent.getStringExtra("project")
+        val projectKey = intent.getStringExtra("project")!!
+        App.captureProject = projectKey
         screenCapture = ScreenCapture(this, intent.getParcelableExtra("captureData")!!)
+        notification.updateText(App.getProject(projectKey).stitchInfo.size)
       }
     }
     return START_NOT_STICKY

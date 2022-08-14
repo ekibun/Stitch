@@ -218,7 +218,6 @@ object Stitch {
               gradientPaint.shader = shader
               c.drawRect(dstRange, gradientPaint)
             } catch (e: Exception) {
-              e.printStackTrace()
             }
           }
           if (drawMask && selected.contains(it.imageKey)) {

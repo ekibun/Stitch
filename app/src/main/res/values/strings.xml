@@ -1,89 +1,102 @@
 <resources>
-    <string name="app_name">Stitch</string>
+    <string name="app_name" translatable="false">Stitch</string>
 
-    <string name="request_overlay">需要悬浮窗口权限</string>
-    <string name="request_failed">缺少权限</string>
-    <string name="please_select_image">未选中图片</string>
-    <string name="please_add_image">请先添加图片</string>
-    <string name="please_select_swap">请选中两张图片</string>
+    <string name="request_overlay">Dropzone permission required</string>
+    <string name="request_failed">Permission request failed</string>
+    <string name="please_select_image">No image selected</string>
+    <string name="please_add_image">Please add image first</string>
+    <string name="please_select_swap">Please select two or more images to swap</string>
 
-    <string name="tile_label">截图拼贴</string>
-    <string name="notify_text">点按通知以结束 / 共 %d 张图片</string>
-    <string name="alert_delete">确认删除 %d 张图片？</string>
-    <string name="alert_stitching">拼接中…</string>
-    <string name="alert_computing">计算中（%d/%d）…</string>
-    <string name="alert_reading">读取中…</string>
-    <string name="alert_cancel">取消</string>
-    <string name="alert_ok">确认</string>
+    <string name="tile_label">Stitch</string>
+    <plurals name="notify_text">
+        <item quantity="one">Tap to stop capture / %d image</item>
+        <item quantity="other">Tap to stop capture / %d images</item>
+    </plurals>
+    <plurals name="alert_delete">
+        <item quantity="one">Are you sure you want to delete the %d selected image?</item>
+        <item quantity="other">Are you sure you want to delete the %d selected images?</item>
+    </plurals>
+    <string name="alert_stitching">Stitching…</string>
+    <string name="alert_computing">Computing (%d/%d)…</string>
+    <string name="alert_reading">Reading…</string>
+    <string name="alert_cancel">Cancel</string>
+    <string name="alert_ok">OK</string>
 
-    <string name="switch_diff">去重</string>
-    <string name="switch_homography">特征匹配(旋转缩放)</string>
+    <string name="switch_diff">Diff mode</string>
+    <string name="switch_homography">Feature match</string>
 
-    <string name="menu_remove">删除</string>
-    <string name="menu_auto_stitch">自动拼接</string>
-    <string name="menu_select_all">全选</string>
-    <string name="menu_select_clear">清除</string>
-    <string name="menu_import">导入</string>
-    <string name="menu_capture">截图</string>
-    <string name="menu_save">保存</string>
-    <string name="menu_share">分享</string>
+    <string name="menu_remove">Delete</string>
+    <string name="menu_auto_stitch">Auto stitch</string>
+    <string name="menu_select_all">Select all</string>
+    <string name="menu_select_clear">Unselect</string>
+    <string name="menu_import">Add image</string>
+    <string name="menu_save">Save</string>
+    <string name="menu_share">Share</string>
+    <string name="menu_horizon">Horizontal</string>
 
-    <string name="label_select">选中 %d/%d</string>
-    <string name="label_dx">水平偏移</string>
-    <string name="label_dy">竖向偏移</string>
-    <string name="label_trim">过渡位置</string>
-    <string name="label_xrange">横向范围</string>
-    <string name="label_yrange">纵向范围</string>
-    <string name="label_rotate">旋转角度</string>
-    <string name="label_scale">缩放比例</string>
+    <string name="tab_auto">Auto</string>
+    <string name="tab_tile">Tile</string>
+    <string name="tab_man">Manual</string>
 
-    <string name="save_success">图片保存成功</string>
-    <string name="throw_error">出错啦</string>
-    <string name="throw_error_capture">捕捉屏幕失败，请允许后台运行并重新截取</string>
+    <string name="label_select">%d/%d Selected</string>
+    <string name="label_dx">Horizontal offset</string>
+    <string name="label_dy">Vertical offset</string>
+    <string name="label_trim">Transition</string>
+    <string name="label_xrange">Horizontal range</string>
+    <string name="label_yrange">Vertical range</string>
+    <string name="label_rotate">Rotate</string>
+    <string name="label_scale">Scale</string>
+
+    <string name="save_success">Image saved</string>
+    <string name="throw_error">Oops</string>
+    <string name="throw_error_capture">Screen capture failed，Please allow background running</string>
 
     <string name="guidance_info">
         &lt;big>&lt;big>&lt;b>Stitch&lt;/b>&lt;/big>&lt;/big>&lt;br/>
-        截图拼接小工具&lt;br/>
+        Screenshot stitch helper&lt;br/>
         &lt;small>%1$s&lt;/small>
     </string>
     <string name="about_info">
         &lt;big>&lt;big>&lt;b>Stitch&lt;/b>&lt;/big>&lt;/big>&lt;br/>
-        截图拼接小工具&lt;br/>
+        Screenshot stitch helper&lt;br/>
         &lt;small>%1$s&lt;/small>&lt;br/>
         &lt;br/>
-        1. 点击导入/截图添加图片&lt;br/>
-        2. 截图模式下，点击悬浮按钮添加屏幕截图，长按按钮打开编辑窗口&lt;br/>
-        3. 点击圆圈选择图片修改拼接参数，或拖动圆圈移动位置&lt;br/>
-        4. 自动拼接采用OpenCV计算，可以用于拼接地图，请保持足够的重合区域&lt;br/>
-        5. 拼接数据将在软件重启或点击快捷按钮后清除，编辑完成后请尽快导出&lt;br/>
+        &lt;ol>
+        &lt;li>Tap Import/Screenshot to add images.&lt;/li>
+        &lt;li>In the screenshot mode, tap the float button to add screenshots, long press the button to open the editor.&lt;/li>
+        &lt;li>Tap the circle to select images to modify the stitching parameters, or drag the circle to move the images.&lt;/li>
+        &lt;li>Automatic stitching is powered by OpenCV, which can be used to stitch maps. Please ensure there is enough overlapping areas.&lt;/li>
+        &lt;li>Stitched data will be cleared after restart or tapping the quick button. Please export it as soon as you finish editing it.&lt;/li>
+        &lt;/ol>
         Enjoy~
     </string>
-    <string name="menu_support">打赏</string>
-    <string name="support_error">请安装支付宝后进行操作</string>
+    <string name="menu_support">Donate</string>
+    <string name="support_error">Alipay not installed</string>
     <string name="menu_github">GitHub</string>
-    <string name="open_error">无法打开浏览器</string>
-    <string name="menu_swap">换序</string>
+    <string name="open_error">Browser open failed</string>
+    <string name="menu_swap">Swap</string>
 
-    <string name="policy_version">v2</string>
+    <string name="policy_version" translatable="false">v2</string>
     <string name="policy">
-欢迎使用Stitch截图拼接小工具。&lt;br />
-在软件使用的过程中，Stitch需要获取您的如下权限：&lt;br />
+&lt;big>&lt;big>&lt;b>Stitch&lt;/b>&lt;/big>&lt;/big>&lt;br/>
+Welcome to use the Screenshot stitch helper.&lt;br />
+Stitch require the following permissions:&lt;br />
 &lt;ol>
-    &lt;li>&lt;b>截取屏幕内容&lt;/b>&lt;br />
-当您使用“截图”功能时，将会申请此权限获取屏幕截图；&lt;/li>
-    &lt;li>&lt;b>显示在其他应用上层&lt;/b>&lt;br />
-当您使用“截图”功能时，将会申请此权限用于提供悬浮按钮进行屏幕截取操作；&lt;/li>
-    &lt;li>&lt;b>展开/收起系统状态&lt;/b>栏&lt;br />
-当您点击QuickTile按钮，将会使用该权限收起系统状态栏；&lt;/li>
+    &lt;li>&lt;b>Record the screen&lt;/b>&lt;br />
+When taking screenshot, this permission will be requested to capture screenshot&lt;/li>
+    &lt;li>&lt;b>Display dropzone windows&lt;/b>&lt;br />
+When taking screenshot, this permission will be requested to display float button&lt;/li>
+    &lt;li>&lt;b>Expand/Collapse system status bar&lt;/b>&lt;br />
+When tap the quick tile button, this permission will be used to collapse system status bar&lt;/li>
 &lt;/ol>
-请您在使用Stitch前仔细阅读&lt;a href="https://ekibun.github.io/Stitch/v2/privacy">《用户协议与隐私政策》&lt;/a>。&lt;br />
+Please read the &lt;a href="https://ekibun.github.io/Stitch/v2/privacy">Privacy Policy&lt;/a> carefully before using Stitch.&lt;br />
 &lt;br />
-您点击“接受”即表示您已阅读并同意上述条款。我们会遵循隐私政策获取和使用您设备的权限，不会在功能服务不需要时通过您授权的权限收集和存储任何信息。&lt;br />
+By clicking &quot;Accept&quot;, you signify that you have read and agree to the above terms. We will obtain and use the permissions in accordance with the Privacy Policy, and will not collect and store any information without needed.&lt;br />
     </string>
-    <string name="policy_accept">接受</string>
-    <string name="policy_dismiss">不接受</string>
-    <string name="menu_privacy">用户协议与隐私政策</string>
-    <string name="opensource">
+    <string name="policy_accept">Accept</string>
+    <string name="policy_dismiss">Dismiss</string>
+    <string name="menu_privacy">Privacy Policy</string>
+    <string name="opensource" translatable="false">
         &lt;b>Kotlin Stdlib&lt;/b>&lt;br/>
         &lt;i>Kotlin Standard Library for JVM&lt;/i>&lt;br/>
         Apache License, Version 2.0&lt;br/>
@@ -116,12 +129,12 @@
         &lt;i>Speeded up robust features&lt;/i>&lt;br/>
         SURF is noncommercial. You may not use this work for commercial purposes. For any reuse or distribution, you must make clear to others the license terms of this work. Any of these conditions can be waived if you get written permission from the copyright holder.
     </string>
-    <string name="menu_opensource">开源许可协议</string>
+    <string name="menu_opensource">Opensource</string>
 
-    <string name="menu_undo">撤销</string>
-    <string name="import_from_gallery">相册导入</string>
-    <string name="import_from_capture">屏幕截图</string>
-    <string name="menu_about">关于</string>
-    <string name="clear_history">清空历史记录</string>
-    <string name="menu_divider">-</string>
+    <string name="menu_undo">Undo</string>
+    <string name="import_from_gallery">Import gallery</string>
+    <string name="import_from_capture">Screen capture</string>
+    <string name="menu_about">About</string>
+    <string name="clear_history">Clear history</string>
+    <string name="menu_divider" translatable="false">-</string>
 </resources>

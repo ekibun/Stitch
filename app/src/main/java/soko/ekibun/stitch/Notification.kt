@@ -42,7 +42,7 @@ class Notification(private val service: CaptureService) {
   }
 
   fun updateText(size: Int) {
-    builder.setContentText(service.getString(R.string.notify_text, size))
+    builder.setContentText(service.resources.getQuantityString(R.plurals.notify_text, size, size))
     manager.notify(notifyID, builder.build())
   }
 }

@@ -15,19 +15,13 @@ class App : Application() {
   override fun onCreate() {
     super.onCreate()
     app = this
-    val dataVersion = sp.getInt("dataVersion", 0)
-    if (dataVersion != DATA_VERSION) {
-      clearProjects()
-      sp.edit().putInt("dataVersion", DATA_VERSION).apply()
-    }
   }
 
   val dataDirPath: String by lazy {
-    applicationInfo.dataDir + File.separator + "Project"
+    (getExternalFilesDir("") ?: filesDir).absolutePath + File.separator + "Project"
   }
 
   companion object {
-    const val DATA_VERSION = 1
 
     private lateinit var app: App
     val bitmapCache get() = app.bitmapCache

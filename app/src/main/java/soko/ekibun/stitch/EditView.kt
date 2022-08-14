@@ -32,7 +32,7 @@ class EditView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
     )
 
   @Suppress("DEPRECATION")
-  private val colorUnselected by lazy { resources.getColor(R.color.opaque) }
+  private val colorUnselected by lazy { resources.getColor(R.color.colorUnselect) }
 
   @Suppress("DEPRECATION")
   private val colorSelected by lazy { resources.getColor(R.color.colorPrimary) }
