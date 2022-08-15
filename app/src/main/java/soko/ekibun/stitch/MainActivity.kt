@@ -20,8 +20,42 @@ import kotlin.math.roundToInt
 
 class MainActivity : Activity() {
 
+  private data class OpenSource(
+    val name: String,
+    val desc: String,
+    val license: String,
+    val url: String
+  )
+
   companion object {
     const val REQUEST_IMPORT = 1
+
+    private val openSources = arrayOf(
+      OpenSource(
+        "Core Kotlin Extensions",
+        "Kotlin extensions for 'core' artifact",
+        "Apache License, Version 2.0",
+        "https://developer.android.com/jetpack/androidx/releases/core"
+      ),
+      OpenSource(
+        "Kotlinx Coroutines Android",
+        "Coroutines support libraries for Kotlin",
+        "Apache License, Version 2.0",
+        "https://github.com/Kotlin/kotlinx.coroutines"
+      ),
+      OpenSource(
+        "Gson",
+        "A Java serialization/deserialization library to convert Java Objects into JSON and back",
+        "Apache License, Version 2.0",
+        "https://github.com/google/gson"
+      ),
+      OpenSource(
+        "OpenCV",
+        "Open Source Computer Vision Library",
+        "Apache License, Version 2.0",
+        "https://opencv.org"
+      )
+    )
   }
 
   private val headerView by lazy {
@@ -54,7 +88,7 @@ class MainActivity : Activity() {
     adapter.updateProjects()
   }
 
-  fun String.toHtml(): CharSequence = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+  private fun String.toHtml(): CharSequence = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
     Html.fromHtml(this, Html.FROM_HTML_MODE_LEGACY)
   } else @Suppress("DEPRECATION") Html.fromHtml(this)
 
@@ -100,12 +134,21 @@ class MainActivity : Activity() {
       AlertDialog.Builder(this)
         .setView(aboutView)
         .setNegativeButton(getString(R.string.menu_opensource)) { _, _ ->
-          val opensourceView = TextView(this)
-          opensourceView.text = getString(R.string.opensource).toHtml()
-          opensourceView.setPaddingRelative(padding, padding, padding, 0)
-          opensourceView.movementMethod = LinkMovementMethod.getInstance()
           AlertDialog.Builder(this)
-            .setView(opensourceView)
+            .setTitle(R.string.menu_opensource)
+            .setItems(
+              openSources.map {
+                "<b>${it.name}</b><br/>${it.license}<br/><i>${it.desc}</i><br/>".toHtml()
+              }.toTypedArray()
+            ) { _, i ->
+              try {
+                val intent = Intent(Intent.ACTION_VIEW)
+                intent.data = Uri.parse(openSources[i].url)
+                startActivity(intent)
+              } catch (e: Exception) {
+                Toast.makeText(this, R.string.open_error, Toast.LENGTH_SHORT).show()
+              }
+            }
             .setPositiveButton(getString(R.string.alert_ok)) { _, _ -> }
             .show()
         }

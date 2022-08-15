@@ -20,7 +20,7 @@
     <string name="alert_ok">確認</string>
 
     <string name="switch_diff">差值</string>
-    <string name="switch_homography">特征匹配</string>
+    <string name="switch_homography">特徵匹配</string>
 
     <string name="menu_remove">刪除</string>
     <string name="menu_auto_stitch">自動拼接</string>
@@ -39,8 +39,8 @@
     <string name="label_dx">水平偏移</string>
     <string name="label_dy">豎向偏移</string>
     <string name="label_trim">過渡位置</string>
-    <string name="label_xrange">橫向範圍</string>
-    <string name="label_yrange">縱向範圍</string>
+    <string name="label_xrange">橫向范圍</string>
+    <string name="label_yrange">縱向范圍</string>
     <string name="label_rotate">旋轉角度</string>
     <string name="label_scale">縮放比例</string>
 
@@ -61,14 +61,14 @@
         1. 點擊導入/截圖添加圖片；&lt;br/>
         2. 截圖模式下，點擊懸浮按鈕添加屏幕截圖，長按按鈕打開編輯窗口；&lt;br/>
         3. 點擊圓圈選擇圖片修改拼接參數，或拖動圓圈移動位置；&lt;br/>
-        4. 自動拼接采用OpenCV計算，可以用于拼接地圖，請保持足夠的重合區域；&lt;br/>
-        5. 拼接數據將在軟件重啓或點擊快捷按鈕後清除，編輯完成後請盡快導出。&lt;br/>
+        4. 自動拼接採用OpenCV計算，可以用於拼接地圖，請保持足夠的重合區域；&lt;br/>
+        5. 拼接數據將在軟件重啟或點擊快捷按鈕後清除，編輯完成後請盡快導出。&lt;br/>
         Enjoy~
     </string>
     <string name="menu_support">打賞</string>
     <string name="support_error">請安裝支付寶後進行操作</string>
     <string name="menu_github">GitHub</string>
-    <string name="open_error">無法打開浏覽器</string>
+    <string name="open_error">無法打開瀏覽器</string>
     <string name="menu_swap">換序</string>
 
     <string name="policy">
@@ -79,13 +79,13 @@
     &lt;li>&lt;b>截取屏幕內容&lt;/b>&lt;br />
 當您使用“截圖”功能時，將會申請此權限獲取屏幕截圖；&lt;/li>
     &lt;li>&lt;b>顯示在其他應用上層&lt;/b>&lt;br />
-當您使用“截圖”功能時，將會申請此權限用于提供懸浮按鈕進行屏幕截取操作；&lt;/li>
+當您使用“截圖”功能時，將會申請此權限用於提供懸浮按鈕進行屏幕截取操作；&lt;/li>
     &lt;li>&lt;b>展開/收起系統狀態欄&lt;/b>&lt;br />
 當您點擊QuickTile按鈕，將會使用該權限收起系統狀態欄；&lt;/li>
 &lt;/ol>
-請您在使用Stitch前仔細閱讀&lt;a href="https://ekibun.github.io/Stitch/v2/privacy">《用戶協議與隱私政策》&lt;/a>。&lt;br />
+請您在使用Stitch前仔細閱讀&lt;a href="https://ekibun.github.io/Stitch/v2/privacy">《用戶協議與隱私政策》&lt;/a>。 &lt;br />
 &lt;br />
-您點擊“接受”即表示您已閱讀並同意上述條款。我們會遵循隱私政策獲取和使用您設備的權限，不會在功能服務不需要時通過您授權的權限收集和存儲任何信息。&lt;br />
+您點擊“接受”即表示您已閱讀並同意上述條款。我們會遵循隱私政策獲取和使用您設備的權限，不會在功能服務不需要時通過您授權的權限收集和存儲任何信息。 &lt;br />
     </string>
     <string name="policy_accept">接受</string>
     <string name="policy_dismiss">不接受</string>
@@ -95,6 +95,6 @@
     <string name="menu_undo">撤銷</string>
     <string name="import_from_gallery">相冊導入</string>
     <string name="import_from_capture">屏幕截圖</string>
-    <string name="menu_about">關于</string>
-    <string name="clear_history">清空曆史記錄</string>
+    <string name="menu_about">關於</string>
+    <string name="clear_history">清空歷史記錄</string>
 </resources>

@@ -96,35 +96,6 @@ By clicking &quot;Accept&quot;, you signify that you have read and agree to the 
     <string name="policy_accept">Accept</string>
     <string name="policy_dismiss">Dismiss</string>
     <string name="menu_privacy">Privacy Policy</string>
-    <string name="opensource" translatable="false">
-        &lt;b>Kotlin Stdlib&lt;/b>&lt;br/>
-        &lt;i>Kotlin Standard Library for JVM&lt;/i>&lt;br/>
-        Apache License, Version 2.0&lt;br/>
-        &lt;br/>
-        &lt;b>Core Kotlin Extensions&lt;/b>&lt;br/>
-        &lt;i>Kotlin extensions for &#180;core&#180; artifact&lt;/i>&lt;br/>
-        Apache License, Version 2.0&lt;br/>
-        &lt;br/>
-        &lt;b>Android AppCompat Library&lt;/b>&lt;br/>
-        &lt;i>The Support Library is a static library that you can add to your Android application in order to use APIs that are either not available for older platform versions or utility APIs that aren&#180;t a part of the framework APIs. Compatible on devices running API 14 or later.&lt;/i>&lt;br/>
-        Apache License, Version 2.0&lt;br/>
-        &lt;br/>
-        &lt;b>Material Components For Android&lt;/b>&lt;br/>
-        &lt;i>Material Components for Android is a static library that you can add to your Android application in order to use APIs that provide implementations of the Material Design specification. Compatible on devices running API 14 or later.&lt;/i>&lt;br/>
-        Apache License, Version 2.0&lt;br/>
-        &lt;br/>
-        &lt;b>Kotlinx Coroutines Core&lt;/b>&lt;br/>
-        &lt;i>Coroutines support libraries for Kotlin&lt;/i>&lt;br/>
-        Apache License, Version 2.0&lt;br/>
-        &lt;br/>
-        &lt;b>Kotlinx Coroutines Android&lt;/b>&lt;br/>
-        &lt;i>Coroutines support libraries for Kotlin&lt;/i>&lt;br/>
-        Apache License, Version 2.0&lt;br/>
-        &lt;br/>
-        &lt;b>OpenCV&lt;/b>&lt;br/>
-        &lt;i>Open Source Computer Vision Library&lt;/i>&lt;br/>
-        Apache License, Version 2.0&lt;br/>
-    </string>
     <string name="menu_opensource">Opensource</string>
 
     <string name="menu_undo">Undo</string>
