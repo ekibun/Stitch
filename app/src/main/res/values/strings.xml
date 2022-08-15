@@ -124,10 +124,6 @@ By clicking &quot;Accept&quot;, you signify that you have read and agree to the 
         &lt;b>OpenCV&lt;/b>&lt;br/>
         &lt;i>Open Source Computer Vision Library&lt;/i>&lt;br/>
         Apache License, Version 2.0&lt;br/>
-        &lt;br/>
-        &lt;b>SURF&lt;/b>&lt;br/>
-        &lt;i>Speeded up robust features&lt;/i>&lt;br/>
-        SURF is noncommercial. You may not use this work for commercial purposes. For any reuse or distribution, you must make clear to others the license terms of this work. Any of these conditions can be waived if you get written permission from the copyright holder.
     </string>
     <string name="menu_opensource">Opensource</string>
 

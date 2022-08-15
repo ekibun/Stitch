@@ -15,15 +15,13 @@ ExternalProject_Add(opencv_lib
         -DANDROID_NDK=${ANDROID_NDK}
         -DCMAKE_BUILD_TYPE=Release
         -DANDROID_PLATFORM=${ANDROID_PLATFORM}
-        -DOPENCV_ENABLE_NONFREE=ON
-        -DOPENCV_EXTRA_MODULES_PATH=${CMAKE_CURRENT_LIST_DIR}/opencv_contrib/modules/
         -DANDROID_STL=c++_static
         -DBUILD_ANDROID_PROJECTS=OFF
         -DBUILD_EXAMPLES=OFF
         -DBUILD_DOCS=OFF
         -DBUILD_PERF_TESTS=OFF
         -DBUILD_TESTS=OFF
-        -DBUILD_LIST=calib3d,xfeatures2d,imgproc
+        -DBUILD_LIST=calib3d,imgproc
         -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/opencv
         )
 
@@ -45,4 +43,4 @@ else()
 endif ()
 
 target_link_libraries(stitch ${log-lib} ${HAL_LIBS} jnigraphics z cpufeatures ittnotify
-        opencv_xfeatures2d opencv_imgproc opencv_flann opencv_features2d opencv_core opencv_calib3d)
+        opencv_imgproc opencv_flann opencv_features2d opencv_core opencv_calib3d)

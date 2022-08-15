@@ -1,0 +1,100 @@
+<resources>
+
+    <string name="request_overlay">需要懸浮窗口權限</string>
+    <string name="request_failed">缺少權限</string>
+    <string name="please_select_image">未選中圖片</string>
+    <string name="please_add_image">請先添加圖片</string>
+    <string name="please_select_swap">請選中兩張以上圖片</string>
+
+    <string name="tile_label">截圖拼貼</string>
+    <plurals name="notify_text">
+        <item quantity="other">點按通知以結束 / 共 %d 張圖片</item>
+    </plurals>
+    <plurals name="alert_delete">
+        <item quantity="other">確認刪除 %d 張圖片？</item>
+    </plurals>
+    <string name="alert_stitching">拼接中…</string>
+    <string name="alert_computing">計算中（%d/%d）…</string>
+    <string name="alert_reading">讀取中…</string>
+    <string name="alert_cancel">取消</string>
+    <string name="alert_ok">確認</string>
+
+    <string name="switch_diff">差值</string>
+    <string name="switch_homography">特征匹配</string>
+
+    <string name="menu_remove">刪除</string>
+    <string name="menu_auto_stitch">自動拼接</string>
+    <string name="menu_select_all">全選</string>
+    <string name="menu_select_clear">清除</string>
+    <string name="menu_import">導入圖片</string>
+    <string name="menu_save">保存</string>
+    <string name="menu_share">分享</string>
+    <string name="menu_horizon">橫向</string>
+
+    <string name="tab_auto">自動</string>
+    <string name="tab_tile">平鋪</string>
+    <string name="tab_man">手動</string>
+
+    <string name="label_select">選中 %d/%d</string>
+    <string name="label_dx">水平偏移</string>
+    <string name="label_dy">豎向偏移</string>
+    <string name="label_trim">過渡位置</string>
+    <string name="label_xrange">橫向範圍</string>
+    <string name="label_yrange">縱向範圍</string>
+    <string name="label_rotate">旋轉角度</string>
+    <string name="label_scale">縮放比例</string>
+
+    <string name="save_success">圖片保存成功</string>
+    <string name="throw_error">出錯啦</string>
+    <string name="throw_error_capture">捕捉屏幕失敗，請允許後台運行並重新截取</string>
+
+    <string name="guidance_info">
+        &lt;big>&lt;big>&lt;b>Stitch&lt;/b>&lt;/big>&lt;/big>&lt;br/>
+        截圖拼接小工具&lt;br/>
+        &lt;small>%1$s&lt;/small>
+    </string>
+    <string name="about_info">
+        &lt;big>&lt;big>&lt;b>Stitch&lt;/b>&lt;/big>&lt;/big>&lt;br/>
+        截圖拼接小工具&lt;br/>
+        &lt;small>%1$s&lt;/small>&lt;br/>
+        &lt;br/>
+        1. 點擊導入/截圖添加圖片；&lt;br/>
+        2. 截圖模式下，點擊懸浮按鈕添加屏幕截圖，長按按鈕打開編輯窗口；&lt;br/>
+        3. 點擊圓圈選擇圖片修改拼接參數，或拖動圓圈移動位置；&lt;br/>
+        4. 自動拼接采用OpenCV計算，可以用于拼接地圖，請保持足夠的重合區域；&lt;br/>
+        5. 拼接數據將在軟件重啓或點擊快捷按鈕後清除，編輯完成後請盡快導出。&lt;br/>
+        Enjoy~
+    </string>
+    <string name="menu_support">打賞</string>
+    <string name="support_error">請安裝支付寶後進行操作</string>
+    <string name="menu_github">GitHub</string>
+    <string name="open_error">無法打開浏覽器</string>
+    <string name="menu_swap">換序</string>
+
+    <string name="policy">
+&lt;big>&lt;big>&lt;b>Stitch&lt;/b>&lt;/big>&lt;/big>&lt;br/>
+歡迎使用Stitch截圖拼接小工具。&lt;br />
+在軟件使用的過程中，Stitch需要獲取您的如下權限：&lt;br />
+&lt;ol>
+    &lt;li>&lt;b>截取屏幕內容&lt;/b>&lt;br />
+當您使用“截圖”功能時，將會申請此權限獲取屏幕截圖；&lt;/li>
+    &lt;li>&lt;b>顯示在其他應用上層&lt;/b>&lt;br />
+當您使用“截圖”功能時，將會申請此權限用于提供懸浮按鈕進行屏幕截取操作；&lt;/li>
+    &lt;li>&lt;b>展開/收起系統狀態欄&lt;/b>&lt;br />
+當您點擊QuickTile按鈕，將會使用該權限收起系統狀態欄；&lt;/li>
+&lt;/ol>
+請您在使用Stitch前仔細閱讀&lt;a href="https://ekibun.github.io/Stitch/v2/privacy">《用戶協議與隱私政策》&lt;/a>。&lt;br />
+&lt;br />
+您點擊“接受”即表示您已閱讀並同意上述條款。我們會遵循隱私政策獲取和使用您設備的權限，不會在功能服務不需要時通過您授權的權限收集和存儲任何信息。&lt;br />
+    </string>
+    <string name="policy_accept">接受</string>
+    <string name="policy_dismiss">不接受</string>
+    <string name="menu_privacy">用戶協議與隱私政策</string>
+    <string name="menu_opensource">開源許可協議</string>
+
+    <string name="menu_undo">撤銷</string>
+    <string name="import_from_gallery">相冊導入</string>
+    <string name="import_from_capture">屏幕截圖</string>
+    <string name="menu_about">關于</string>
+    <string name="clear_history">清空曆史記錄</string>
+</resources>

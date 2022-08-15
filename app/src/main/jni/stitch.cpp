@@ -1,7 +1,6 @@
 #include "jni.h"
 #include <android/bitmap.h>
 #include "opencv2/core.hpp"
-#include "opencv2/xfeatures2d/nonfree.hpp"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/calib3d.hpp"
 
@@ -33,7 +32,7 @@ JNIEXPORT jboolean Java_soko_ekibun_stitch_Stitch_findHomographyNative(
   BitmapToMatrix(env, img0, mat0);
   BitmapToMatrix(env, img1, mat1);
   cv::Mat kernel = (cv::Mat_<char>(3, 3) << 1, 1, 1, 1, -8, 1, 1, 1, 1);
-  cv::Ptr<cv::DescriptorExtractor> surf = cv::xfeatures2d::SURF::create();
+  cv::Ptr <cv::DescriptorExtractor> surf = cv::SIFT::create();
   std::vector<cv::KeyPoint> kp0, kp1;
   if (mat0.rows == mat1.rows && mat0.cols == mat1.cols && isdiff) {
     cv::Mat grad0, grad1, diff;
