@@ -76,26 +76,6 @@
     <string name="open_error">Browser open failed</string>
     <string name="menu_swap">Swap</string>
 
-    <string name="policy_version" translatable="false">v2</string>
-    <string name="policy">
-&lt;big>&lt;big>&lt;b>Stitch&lt;/b>&lt;/big>&lt;/big>&lt;br/>
-Welcome to use the Screenshot stitch helper.&lt;br />
-Stitch require the following permissions:&lt;br />
-&lt;ol>
-    &lt;li>&lt;b>Record the screen&lt;/b>&lt;br />
-When taking screenshot, this permission will be requested to capture screenshot&lt;/li>
-    &lt;li>&lt;b>Display dropzone windows&lt;/b>&lt;br />
-When taking screenshot, this permission will be requested to display float button&lt;/li>
-    &lt;li>&lt;b>Expand/Collapse system status bar&lt;/b>&lt;br />
-When tap the quick tile button, this permission will be used to collapse system status bar&lt;/li>
-&lt;/ol>
-Please read the &lt;a href="https://ekibun.github.io/Stitch/v2/privacy">Privacy Policy&lt;/a> carefully before using Stitch.&lt;br />
-&lt;br />
-By clicking &quot;Accept&quot;, you signify that you have read and agree to the above terms. We will obtain and use the permissions in accordance with the Privacy Policy, and will not collect and store any information without needed.&lt;br />
-    </string>
-    <string name="policy_accept">Accept</string>
-    <string name="policy_dismiss">Dismiss</string>
-    <string name="menu_privacy">Privacy Policy</string>
     <string name="menu_opensource">Opensource</string>
 
     <string name="menu_undo">Undo</string>

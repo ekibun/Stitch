@@ -71,25 +71,6 @@
     <string name="open_error">无法打开浏览器</string>
     <string name="menu_swap">换序</string>
 
-    <string name="policy">
-&lt;big>&lt;big>&lt;b>Stitch&lt;/b>&lt;/big>&lt;/big>&lt;br/>
-欢迎使用Stitch截图拼接小工具。&lt;br />
-在软件使用的过程中，Stitch需要获取您的如下权限：&lt;br />
-&lt;ol>
-    &lt;li>&lt;b>截取屏幕内容&lt;/b>&lt;br />
-当您使用“截图”功能时，将会申请此权限获取屏幕截图；&lt;/li>
-    &lt;li>&lt;b>显示在其他应用上层&lt;/b>&lt;br />
-当您使用“截图”功能时，将会申请此权限用于提供悬浮按钮进行屏幕截取操作；&lt;/li>
-    &lt;li>&lt;b>展开/收起系统状态栏&lt;/b>&lt;br />
-当您点击QuickTile按钮，将会使用该权限收起系统状态栏；&lt;/li>
-&lt;/ol>
-请您在使用Stitch前仔细阅读&lt;a href="https://ekibun.github.io/Stitch/v2/privacy">《用户协议与隐私政策》&lt;/a>。&lt;br />
-&lt;br />
-您点击“接受”即表示您已阅读并同意上述条款。我们会遵循隐私政策获取和使用您设备的权限，不会在功能服务不需要时通过您授权的权限收集和存储任何信息。&lt;br />
-    </string>
-    <string name="policy_accept">接受</string>
-    <string name="policy_dismiss">不接受</string>
-    <string name="menu_privacy">用户协议与隐私政策</string>
     <string name="menu_opensource">开源许可协议</string>
 
     <string name="menu_undo">撤销</string>

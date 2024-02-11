@@ -3,7 +3,6 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/app/src/main/jni/opencv" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/app/src/main/jni/opencv_contrib" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/policy" vcs="Git" />
   </component>
 </project>

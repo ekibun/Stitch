@@ -57,12 +57,6 @@ class StartCaptureActivity : Activity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    val sp = PreferenceManager.getDefaultSharedPreferences(this)
-    val policyVersion = getString(R.string.policy_version)
-    if (sp.getString("policy_version", "") != policyVersion) {
-      startActivity(Intent(this, MainActivity::class.java))
-      finish()
-    }
     startCaptureService()
   }
 

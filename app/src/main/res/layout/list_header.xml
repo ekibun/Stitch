@@ -15,15 +15,6 @@
         tools:text="@string/guidance_info" />
 
     <TextView
-        android:id="@+id/menu_privacy"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="?android:attr/selectableItemBackground"
-        android:padding="8dp"
-        android:text="@string/menu_privacy"
-        android:textColor="?android:colorAccent" />
-
-    <TextView
         android:id="@+id/menu_about"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

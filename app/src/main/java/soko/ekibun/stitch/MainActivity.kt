@@ -95,36 +95,12 @@ class MainActivity : Activity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
 
-    val policyVersion = getString(R.string.policy_version)
-    if (App.sp.getString("policy_version", "") != policyVersion) {
-      val policyView = TextView(this)
-      policyView.text = getString(R.string.policy).toHtml()
-      val padding = (resources.displayMetrics.density * 24).roundToInt()
-      policyView.setPaddingRelative(padding, padding, padding, 0)
-      policyView.movementMethod = LinkMovementMethod.getInstance()
-      AlertDialog.Builder(this).setCancelable(false).setView(policyView)
-        .setPositiveButton(R.string.policy_accept) { _, _ ->
-          App.sp.edit().putString("policy_version", policyVersion).apply()
-        }.setNegativeButton(R.string.policy_dismiss) { _, _ ->
-          finish()
-        }.show()
-    }
-
     setContentView(R.layout.activity_main)
 
     projectList.adapter = adapter
 
     val str = getString(R.string.guidance_info, getVersion(this))
     headerView.findViewById<TextView>(R.id.guidance_info).text = str.toHtml()
-    headerView.findViewById<TextView>(R.id.menu_privacy).setOnClickListener {
-      try {
-        val intent = Intent(Intent.ACTION_VIEW)
-        intent.data = Uri.parse("https://ekibun.github.io/Stitch/$policyVersion/privacy")
-        startActivity(intent)
-      } catch (e: Exception) {
-        Toast.makeText(this, R.string.open_error, Toast.LENGTH_SHORT).show()
-      }
-    }
     headerView.findViewById<TextView>(R.id.menu_about).setOnClickListener {
       val aboutView = TextView(this)
       aboutView.text = getString(R.string.about_info, getVersion(this)).toHtml()

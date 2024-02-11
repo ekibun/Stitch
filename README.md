@@ -3,6 +3,14 @@
 [![GitHub license](	https://img.shields.io/github/license/ekibun/Stitch.svg)](https://github.com/ekibun/Stitch)
 [![Github download]( https://img.shields.io/github/downloads/ekibun/Stitch/total.svg)](https://github.com/ekibun/Stitch/releases)
 
+Screenshot stitch helper
+
+1. Tap Import/Screenshot to add images.
+2. In the screenshot mode, tap the float button to add screenshots, long press the button to open the editor.
+3. Tap the circle to select images to modify the stitching parameters, or drag the circle to move the images.
+4. Automatic stitching is powered by OpenCV, which can be used to stitch maps. Please ensure there is enough overlapping areas.
+5. Stitched data will be cleared after restart or tapping the quick button. Please export it as soon as you finish editing it.
+
 截图拼接小工具
 
 1. 点击导入/截图添加图片
