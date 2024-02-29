@@ -24,3 +24,7 @@ Screenshot stitch helper
 5. 拼接数据将在软件重启或点击快捷按钮后清除，编辑完成后请尽快导出
 
 Enjoy~
+
+[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
+     alt="Get it on F-Droid"
+     height="80">](https://f-droid.org/packages/soko.ekibun.stitch/)
